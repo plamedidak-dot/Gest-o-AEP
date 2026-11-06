@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'member';
-export type AdminRole = 'Presidente' | 'Vice-Presidente' | 'Secretária' | 'Tesoureiro';
-export type DepartmentRole = 'Coordenador' | 'Vice-Coordenador' | 'Membro';
+export type AdminRole = 'Presidente' | 'Vice-Presidente' | 'Secretária' | 'Secretário-Geral' | 'Tesoureiro' | string;
+export type DepartmentRole = 'Coordenador' | 'Vice-Coordenador' | 'Subcoordenador' | 'Secretária' | 'Membro' | string;
 
 export interface UserProfile {
   id: string;

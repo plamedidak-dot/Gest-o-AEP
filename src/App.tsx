@@ -207,6 +207,8 @@ export default function App() {
               onOpenNewQuotaModalWithMember={handleChargeQuotaForMember}
               onOpenPdfReport={() => setPdfReportState({ isOpen: true, type: 'members' })}
               onLoadSampleData={handleLoadSampleData}
+              onSwitchUser={setCurrentUser}
+              onNavigateTab={setCurrentTab}
             />
           )}
 

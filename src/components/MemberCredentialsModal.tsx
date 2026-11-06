@@ -19,6 +19,7 @@ interface MemberCredentialsModalProps {
   member: Member;
   settings: AssociationSettings;
   isNewRegistration?: boolean;
+  onEnterAdminPanel?: (member: Member) => void;
   onClose: () => void;
 }
 
@@ -26,9 +27,16 @@ export const MemberCredentialsModal: React.FC<MemberCredentialsModalProps> = ({
   member,
   settings,
   isNewRegistration = false,
+  onEnterAdminPanel,
   onClose,
 }) => {
   const [copied, setCopied] = useState(false);
+
+  const isAdm = (member.department || '').toLowerCase().includes('administra') || 
+                (member.departmentRole || '').toLowerCase().includes('presidente') ||
+                (member.departmentRole || '').toLowerCase().includes('secretár') ||
+                (member.departmentRole || '').toLowerCase().includes('tesour') ||
+                member.category === 'direcao';
 
   const credentialsText = `----------------------------------------
 CREDENCIAS DE ACESSO - ASSOCIAÇÃO DE ESTUDANTES
@@ -84,7 +92,38 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
         </div>
 
         {/* Printable Credentials Slip */}
-        <div className="p-6 space-y-5" id="printable-credentials">
+        <div className="p-6 space-y-4" id="printable-credentials">
+          {/* Administrative Integration Banner */}
+          {isAdm && (
+            <div className="no-print p-3.5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-indigo-950">
+                    Colocado no Painel Administrativo!
+                  </h4>
+                  <p className="text-[11px] text-indigo-700">
+                    Este membro foi registado na Direção e tem privilégios totais de Administrador ({member.departmentRole}).
+                  </p>
+                </div>
+              </div>
+              {onEnterAdminPanel && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onEnterAdminPanel(member);
+                    onClose();
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shrink-0 shadow-xs transition-colors"
+                >
+                  Entrar no Painel →
+                </button>
+              )}
+            </div>
+          )}
+
           {/* School Badge & Identification */}
           <div className="flex items-center justify-between pb-4 border-b border-slate-200">
             <div className="flex items-center gap-3">
@@ -183,8 +222,10 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
 
             <div className="pt-1 flex items-center justify-between text-[11px] text-slate-300">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Acesso estrito aos dados e quotas pessoais</span>
+                <ShieldCheck className={`w-4 h-4 ${isAdm ? 'text-amber-400' : 'text-emerald-400'} shrink-0`} />
+                <span>
+                  {isAdm ? 'Acesso Total ao Painel Administrativo' : 'Acesso estrito aos dados e quotas pessoais'}
+                </span>
               </div>
               <div className="bg-white p-1 rounded-lg shrink-0">
                 <QRCodeSvg
@@ -227,12 +268,25 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
               <Printer className="w-4 h-4" />
               <span>Imprimir Ficha</span>
             </button>
-            <button
-              onClick={onClose}
-              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
-            >
-              Concluir
-            </button>
+            {isAdm && onEnterAdminPanel ? (
+              <button
+                onClick={() => {
+                  onEnterAdminPanel(member);
+                  onClose();
+                }}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
+              >
+                <span>Aceder ao Painel</span>
+                <span>→</span>
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+              >
+                Concluir
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -57,7 +57,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     onClose();
   };
 
+  const isAdministrativeMember = (member: Member) => {
+    const dept = (member.department || '').toLowerCase();
+    const role = (member.departmentRole || '').toLowerCase();
+    return dept.includes('administra') || role.includes('presidente') || role.includes('secretár') || role.includes('secretar') || role.includes('tesour') || member.category === 'direcao';
+  };
+
   const handleMemberQuickLogin = (member: Member) => {
+    const isAdm = isAdministrativeMember(member);
     const memberUser: UserProfile = {
       id: `usr-${member.id}`,
       memberId: member.id,
@@ -65,7 +72,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       accessCode: member.accessCode,
       name: member.fullName,
       email: member.email,
-      role: 'member',
+      role: isAdm ? 'admin' : 'member',
+      adminRole: isAdm ? (member.departmentRole as any) : undefined,
       phone: member.phone,
       bio: `${member.departmentRole} no ${member.department}`,
       joinedYear: member.joinDate?.slice(0, 4) || '2026',
@@ -200,52 +208,103 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {activeTab === 'quick' && (
           <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
             <div>
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Membros da Direção & Administração
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Painel Administrativo & Direção</span>
+                </h4>
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  Acesso Total
+                </span>
+              </div>
+
+              {/* Registered Administrative Members */}
+              {members.filter(m => isAdministrativeMember(m)).length > 0 && (
+                <div className="space-y-1.5 mb-3">
+                  <p className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider">
+                    Membros Registados na Área Administrativa
+                  </p>
+                  {members.filter(m => isAdministrativeMember(m)).map(m => {
+                    const isCurrent = currentUser.memberId === m.id || currentUser.accessCode === m.accessCode;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => handleMemberQuickLogin(m)}
+                        className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                          isCurrent 
+                            ? 'bg-indigo-50 border-indigo-400 font-bold text-indigo-950 ring-2 ring-indigo-500/20' 
+                            : 'bg-white hover:bg-slate-50 border-indigo-200 text-slate-800'
+                        }`}
+                      >
+                        <div>
+                          <div className="font-bold flex items-center gap-2">
+                            <span>{m.fullName}</span>
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              {m.accessCode}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">
+                            Cargo: <strong className="text-slate-800">{m.departmentRole}</strong> · Proc: {m.studentNumber}
+                          </div>
+                        </div>
+                        {isCurrent ? (
+                          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">Ativo</span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-indigo-600 hover:underline">Entrar no Painel →</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Default Admin Accounts */}
               <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Contas Padrão de Administração
+                </p>
                 {ADMIN_ACCOUNTS.map(admin => {
                   const isCurrent = currentUser.id === admin.id;
                   return (
                     <button
                       key={admin.id}
                       onClick={() => handleQuickLogin(admin)}
-                      className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                      className={`w-full p-2 rounded-lg border text-left transition-all flex items-center justify-between ${
                         isCurrent 
-                          ? 'bg-indigo-50 border-indigo-300 font-bold text-indigo-950' 
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
+                          ? 'bg-slate-100 border-slate-300 font-bold text-slate-900' 
+                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                       }`}
                     >
-                      <div>
-                        <div className="font-bold flex items-center gap-2">
-                          <span>{admin.name}</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      <div className="min-w-0">
+                        <div className="font-medium flex items-center gap-2">
+                          <span className="truncate">{admin.name}</span>
+                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
                             {admin.accessCode}
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          Cargo: {admin.adminRole} · Acesso Completo
+                        <div className="text-[9px] text-slate-400">
+                          Cargo: {admin.adminRole} · Senha: {admin.password}
                         </div>
                       </div>
-                      {isCurrent && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+                      {isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Registered Members Section */}
+            {/* Registered Ordinary Members Section */}
             <div className="pt-2 border-t border-slate-200">
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Membros & Alunos Registados ({members.length})
+                Membros Ordinários & Sócios ({members.filter(m => !isAdministrativeMember(m)).length})
               </h4>
-              {members.length === 0 ? (
-                <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-xs">
-                  Ainda não existem membros registados. Registe um aluno no separador &ldquo;Membros&rdquo; para ver as suas credenciais!
+              {members.filter(m => !isAdministrativeMember(m)).length === 0 ? (
+                <div className="p-3 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-xs">
+                  Nenhum membro ordinário registado ainda.
                 </div>
               ) : (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {members.map(member => {
+                <div className="space-y-1.5 max-h-44 overflow-y-auto">
+                  {members.filter(m => !isAdministrativeMember(m)).map(member => {
                     const isCurrent = currentUser.memberId === member.id;
                     return (
                       <button

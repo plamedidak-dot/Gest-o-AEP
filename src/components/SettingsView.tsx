@@ -63,6 +63,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [showConfirmClearAll, setShowConfirmClearAll] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
 
+  React.useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
+
   const handleChange = (field: keyof AssociationSettings, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };

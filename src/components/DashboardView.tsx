@@ -10,7 +10,9 @@ import {
   Clock, 
   MapPin, 
   ShieldCheck,
-  Plus
+  Plus,
+  Building2,
+  KeyRound
 } from 'lucide-react';
 import { 
   Member, 
@@ -68,6 +70,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const topCourses = Object.entries(courseCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
+
+  // Administrative Board Officers (Presidente, Vice-Presidente, Secretário-Geral, Tesoureiro)
+  const isAdmDept = (dept?: string) => (dept || '').toLowerCase().includes('administra');
+  const presidente = members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('presidente') && !m.departmentRole?.toLowerCase().includes('vice'));
+  const vicePresidente = members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('vice-presidente'));
+  const secretaria = members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && (m.departmentRole?.toLowerCase().includes('secretár') || m.departmentRole?.toLowerCase().includes('secretar')));
+  const tesoureiro = members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('tesour'));
+
+  const adminOfficersList = [
+    {
+      roleTitle: 'Presidente da Direção',
+      roleKey: 'Presidente',
+      member: presidente,
+      badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
+    },
+    {
+      roleTitle: 'Vice-Presidente',
+      roleKey: 'Vice-Presidente',
+      member: vicePresidente,
+      badgeColor: 'bg-pink-50 text-pink-800 border-pink-200',
+    },
+    {
+      roleTitle: 'Secretário-Geral',
+      roleKey: 'Secretária',
+      member: secretaria,
+      badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
+    },
+    {
+      roleTitle: 'Tesoureiro da AE',
+      roleKey: 'Tesoureiro',
+      member: tesoureiro,
+      badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -181,6 +217,125 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-xs text-slate-500 mt-1">
             Estatutos & Actas oficiais
           </div>
+        </div>
+      </div>
+
+      {/* PAINEL ADMINISTRATIVO: Órgão de Gestão & Corpo Directivo */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h2 className="text-base font-bold text-slate-900">
+                Painel Administrativo · Corpo Directivo da AE
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Acesso Total de Gestão
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Os membros da área administrativa são integrados automaticamente com permissões totais de administração e acesso aos relatórios da escola.
+            </p>
+          </div>
+
+          <button
+            onClick={() => onOpenNewMemberModal()}
+            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs self-start sm:self-auto shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Registar Membro Administrativo</span>
+          </button>
+        </div>
+
+        {/* 4 Administrative Officers Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {adminOfficersList.map(officer => {
+            const isFilled = Boolean(officer.member);
+            const isCurrent = isFilled && (currentUser.memberId === officer.member?.id || currentUser.accessCode === officer.member?.accessCode);
+
+            return (
+              <div
+                key={officer.roleKey}
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
+                  isFilled 
+                    ? isCurrent
+                      ? 'bg-indigo-50/60 border-indigo-300 ring-2 ring-indigo-500/20'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
+                    : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${officer.badgeColor}`}>
+                      {officer.roleTitle}
+                    </span>
+                    {isCurrent && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-600 text-white">
+                        Sua Sessão
+                      </span>
+                    )}
+                  </div>
+
+                  {isFilled ? (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {officer.member!.fullName.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 text-xs truncate">
+                            {officer.member!.fullName}
+                          </h4>
+                          <span className="text-[10px] font-mono font-bold text-indigo-700 block">
+                            {officer.member!.accessCode}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 text-[11px] text-slate-600 space-y-0.5">
+                        <p>Proc: <span className="font-mono font-bold text-slate-800">{officer.member!.studentNumber}</span></p>
+                        <p>{officer.member!.classLevel} ({officer.member!.turno})</p>
+                        <p className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 pt-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Ativo no Painel Administrativo</span>
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-3 text-center space-y-2">
+                      <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center mx-auto text-xs font-bold">
+                        ?
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">Cargo Vago</p>
+                        <p className="text-[10px] text-slate-400">Nenhum {officer.roleTitle.toLowerCase()} registado</p>
+                      </div>
+                      <button
+                        onClick={() => onOpenNewMemberModal()}
+                        className="w-full py-1.5 px-2 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-700 rounded-lg text-[10px] font-bold shadow-2xs transition-colors"
+                      >
+                        + Preencher Cargo
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {isFilled && (
+                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400 text-[10px]">Área Administrativa</span>
+                    <button
+                      onClick={() => onNavigateTab('members')}
+                      className="text-indigo-600 hover:text-indigo-800 font-bold"
+                    >
+                      Ver Membro →
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

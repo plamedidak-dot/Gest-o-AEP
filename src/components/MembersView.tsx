@@ -37,6 +37,8 @@ interface MembersViewProps {
   onOpenNewQuotaModalWithMember: (member: Member) => void;
   onOpenPdfReport: () => void;
   onLoadSampleData?: () => void;
+  onSwitchUser?: (user: UserProfile) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const MembersView: React.FC<MembersViewProps> = ({
@@ -48,6 +50,8 @@ export const MembersView: React.FC<MembersViewProps> = ({
   onOpenNewQuotaModalWithMember,
   onOpenPdfReport,
   onLoadSampleData,
+  onSwitchUser,
+  onNavigateTab,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
@@ -313,6 +317,11 @@ export const MembersView: React.FC<MembersViewProps> = ({
         idCardIssued: true,
         notes,
       });
+
+      // If registered member is administrative, auto-sync leadership settings
+      if (isAdmin) {
+        storage.syncLeadershipSettings(created);
+      }
 
       setShowAddModal(false);
       setEditingMember(null);
@@ -1094,6 +1103,25 @@ export const MembersView: React.FC<MembersViewProps> = ({
           member={credentialsMember.member}
           settings={settings}
           isNewRegistration={credentialsMember.isNew}
+          onEnterAdminPanel={(m) => {
+            const adminUser: UserProfile = {
+              id: `usr-${m.id}`,
+              memberId: m.id,
+              memberNumber: m.memberNumber,
+              accessCode: m.accessCode,
+              name: m.fullName,
+              email: m.email,
+              role: 'admin',
+              adminRole: m.departmentRole as any,
+              phone: m.phone,
+              bio: `${m.departmentRole} da Associação de Estudantes`,
+              joinedYear: m.joinDate?.slice(0, 4) || '2026',
+              notificationsEnabled: true,
+            };
+            storage.setCurrentUser(adminUser);
+            if (onSwitchUser) onSwitchUser(adminUser);
+            if (onNavigateTab) onNavigateTab('dashboard');
+          }}
           onClose={() => setCredentialsMember(null)}
         />
       )}

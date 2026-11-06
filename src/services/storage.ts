@@ -7,6 +7,8 @@ import {
   AssociationSettings,
   AppNotification,
   UserProfile,
+  UserRole,
+  AdminRole,
   DepartmentType,
   DepartmentItem
 } from '../types';
@@ -421,7 +423,61 @@ class StorageService {
     return newMember;
   }
 
+  isAdministrativeMember(member: { department?: string; departmentRole?: string; category?: string }): boolean {
+    const dept = (member.department || '').toLowerCase();
+    const role = (member.departmentRole || '').toLowerCase();
+    const isDeptAdm = dept.includes('administrativ') || dept.includes('administra') || dept.includes('direção') || dept.includes('direcao');
+    const isRoleAdm = role.includes('presidente') || role.includes('vice-presidente') || role.includes('secretár') || role.includes('secretar') || role.includes('tesour');
+    return isDeptAdm || isRoleAdm || member.category === 'direcao';
+  }
+
+  // Automatically sync names into AssociationSettings leadership fields (Presidente, Vice, etc.)
+  syncLeadershipSettings(member: Member): void {
+    const settings = this.getSettings();
+    const role = (member.departmentRole || '').toLowerCase();
+    let updated = false;
+
+    if (role.includes('vice-presidente')) {
+      settings.vicePresidentName = member.fullName;
+      updated = true;
+    } else if (role.includes('presidente')) {
+      settings.presidentName = member.fullName;
+      updated = true;
+    } else if (role.includes('secretár') || role.includes('secretar')) {
+      settings.secretaryName = member.fullName;
+      updated = true;
+    } else if (role.includes('tesour')) {
+      settings.treasurerName = member.fullName;
+      updated = true;
+    }
+
+    if (updated) {
+      this.saveSettings(settings);
+    }
+  }
+
+  getAdministrativeOfficers(): {
+    presidente?: Member;
+    vicePresidente?: Member;
+    secretaria?: Member;
+    tesoureiro?: Member;
+  } {
+    const members = this.getMembers();
+    const isAdmDept = (dept?: string) => (dept || '').toLowerCase().includes('administra');
+    
+    return {
+      presidente: members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('presidente') && !m.departmentRole?.toLowerCase().includes('vice')),
+      vicePresidente: members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('vice-presidente')),
+      secretaria: members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && (m.departmentRole?.toLowerCase().includes('secretár') || m.departmentRole?.toLowerCase().includes('secretar'))),
+      tesoureiro: members.find(m => (isAdmDept(m.department) || m.category === 'direcao') && m.departmentRole?.toLowerCase().includes('tesour')),
+    };
+  }
+
   private saveMemberUserProfile(member: Member): void {
+    const isAdm = this.isAdministrativeMember(member);
+    const role: UserRole = isAdm ? 'admin' : 'member';
+    const adminRole = isAdm ? (member.departmentRole as AdminRole) : undefined;
+
     const profiles = this.getUserProfiles();
     const existingIdx = profiles.findIndex(p => p.memberId === member.id || p.accessCode === member.accessCode);
     const newProfile: UserProfile = {
@@ -432,7 +488,8 @@ class StorageService {
       password: member.password,
       email: member.email || `${member.accessCode.toLowerCase()}@escola.ao`,
       name: member.fullName,
-      role: 'member',
+      role,
+      adminRole,
       phone: member.phone,
       bio: `${member.departmentRole} no ${member.department} (${member.classLevel || 'Estudante'})`,
       joinedYear: new Date().getFullYear().toString(),
@@ -445,6 +502,11 @@ class StorageService {
       profiles.push(newProfile);
     }
     localStorage.setItem(STORAGE_KEYS.USER_PROFILES, JSON.stringify(profiles));
+
+    // If administrative member, automatically synchronize leadership settings
+    if (isAdm) {
+      this.syncLeadershipSettings(member);
+    }
   }
 
   getUserProfiles(): UserProfile[] {
@@ -496,6 +558,7 @@ class StorageService {
 
     if (member) {
       if (member.password === cleanPass || cleanPass === '123456' || cleanPass === 'aluno123') {
+        const isAdm = this.isAdministrativeMember(member);
         const memberUser: UserProfile = {
           id: `usr-${member.id}`,
           memberId: member.id,
@@ -503,7 +566,8 @@ class StorageService {
           accessCode: member.accessCode,
           name: member.fullName,
           email: member.email,
-          role: 'member',
+          role: isAdm ? 'admin' : 'member',
+          adminRole: isAdm ? (member.departmentRole as AdminRole) : undefined,
           phone: member.phone,
           bio: `${member.departmentRole} no ${member.department}`,
           joinedYear: member.joinDate?.slice(0, 4) || '2026',
@@ -525,6 +589,9 @@ class StorageService {
     if (index === -1) return null;
     members[index] = { ...members[index], ...updates };
     this.saveMembers(members);
+
+    // Synchronize member user profile and admin rights
+    this.saveMemberUserProfile(members[index]);
 
     if (updates.fullName) {
       const quotas = this.getQuotas().map(q => q.memberId === id ? { ...q, memberName: updates.fullName! } : q);

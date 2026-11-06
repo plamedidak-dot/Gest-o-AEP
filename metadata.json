@@ -1,0 +1,6 @@
+{
+  "name": "Gestão da Associação de Estudantes",
+  "description": "Sistema integrado de gestão para associação de estudantes: gestão de membros, emissão de quotas e recibos, eventos e presenças com controle de quórum, e arquivo digital de documentos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

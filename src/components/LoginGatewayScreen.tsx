@@ -7,25 +7,18 @@ import {
   Eye, 
   EyeOff, 
   ShieldCheck, 
-  Sparkles, 
-  School,
-  Building2,
-  CheckCircle2,
-  HelpCircle,
-  Users
+  HelpCircle
 } from 'lucide-react';
-import { UserProfile, AssociationSettings, Member } from '../types';
-import { storage, ADMIN_ACCOUNTS } from '../services/storage';
+import { UserProfile, AssociationSettings } from '../types';
+import { storage } from '../services/storage';
 
 interface LoginGatewayScreenProps {
   settings: AssociationSettings;
-  members: Member[];
   onLoginSuccess: (user: UserProfile) => void;
 }
 
 export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
   settings,
-  members,
   onLoginSuccess,
 }) => {
   const [accessCode, setAccessCode] = useState('');
@@ -33,22 +26,6 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
-
-  // Check if member is in administrative area
-  const isAdmMember = (m: Member) => {
-    const dept = (m.department || '').toLowerCase();
-    const role = (m.departmentRole || '').toLowerCase();
-    return dept.includes('administra') || 
-           role.includes('presidente') || 
-           role.includes('secretár') || 
-           role.includes('secretar') || 
-           role.includes('tesour') || 
-           m.category === 'direcao';
-  };
-
-  const registeredAdmins = members.filter(isAdmMember);
-  const registeredStudents = members.filter(m => !isAdmMember(m));
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,30 +39,14 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
       if (result.success && result.user) {
         onLoginSuccess(result.user);
       } else {
-        setErrorMsg(result.message || 'Código de acesso ou senha incorretos. Verifique e tente novamente.');
+        setErrorMsg(result.message || 'Código de acesso ou senha incorretos. Verifique as suas credenciais.');
       }
-    }, 200);
-  };
-
-  const handleQuickFill = (code: string, pass: string) => {
-    setAccessCode(code);
-    setPassword(pass);
-    setErrorMsg(null);
-  };
-
-  const handleDirectDemoLogin = (code: string, pass: string) => {
-    setAccessCode(code);
-    setPassword(pass);
-    setErrorMsg(null);
-    const result = storage.authenticate(code, pass);
-    if (result.success && result.user) {
-      onLoginSuccess(result.user);
-    }
+    }, 250);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 md:p-8 relative overflow-hidden antialiased">
-      {/* Background Decorative Rings */}
+      {/* Background Decorative Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-[600px] h-[600px] bg-rose-600/5 blur-[140px] rounded-full pointer-events-none" />
 
@@ -157,7 +118,7 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
                 />
               </div>
               <p className="text-[10px] text-slate-400 mt-1">
-                Atribuído na ficha de credenciais (ou código de administração).
+                Atribuído na ficha de credenciais da Associação.
               </p>
             </div>
 
@@ -198,7 +159,7 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all disabled:opacity-50 mt-2"
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all disabled:opacity-50 mt-2 cursor-pointer"
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -209,118 +170,12 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
                 </>
               )}
             </button>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
+              <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>Esqueceu as suas credenciais? Contacte a Direção da AE.</span>
+            </div>
           </form>
-
-          {/* Collapsible Quick Demo Credentials Drawer */}
-          <div className="border-t border-slate-100 bg-slate-50/80 p-4 sm:p-5 text-xs">
-            <button
-              type="button"
-              onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-              className="w-full flex items-center justify-between text-indigo-700 hover:text-indigo-900 font-bold transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
-                <span>Ver Contas e Códigos de Acesso</span>
-              </div>
-              <span className="text-[11px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full font-semibold">
-                {showDemoAccounts ? 'Ocultar ▲' : 'Consultar ▼'}
-              </span>
-            </button>
-
-            {showDemoAccounts && (
-              <div className="mt-3.5 space-y-3 pt-3 border-t border-slate-200/80 animate-in fade-in">
-                {/* 1. Administrative Board Accounts */}
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Direção & Painel Administrativo</span>
-                  </h4>
-                  <div className="space-y-1.5">
-                    {/* If real administrative members are registered */}
-                    {registeredAdmins.length > 0 ? (
-                      registeredAdmins.map((adm) => (
-                        <div
-                          key={adm.id}
-                          className="p-2.5 bg-white rounded-xl border border-indigo-200 flex items-center justify-between gap-2 shadow-2xs"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-900 truncate">
-                              {adm.fullName} ({adm.departmentRole})
-                            </p>
-                            <p className="text-[10px] text-slate-500 font-mono">
-                              Cód: <strong className="text-indigo-700">{adm.accessCode}</strong> · Senha: <strong>{adm.password || '123456'}</strong>
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDirectDemoLogin(adm.accessCode, adm.password || '123456')}
-                            className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-bold shrink-0 border border-indigo-200"
-                          >
-                            Entrar
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      ADMIN_ACCOUNTS.map((adm) => (
-                        <div
-                          key={adm.id}
-                          className="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-2xs"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-900 truncate">
-                              {adm.name} ({adm.adminRole})
-                            </p>
-                            <p className="text-[10px] text-slate-500 font-mono">
-                              Cód: <strong className="text-indigo-700">{adm.accessCode}</strong> · Senha: <strong>{adm.password}</strong>
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDirectDemoLogin(adm.accessCode!, adm.password!)}
-                            className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-bold shrink-0 border border-indigo-200"
-                          >
-                            Entrar
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* 2. Registered Ordinary Members */}
-                {registeredStudents.length > 0 && (
-                  <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Alunos / Sócios Registados ({registeredStudents.length})</span>
-                    </h4>
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
-                      {registeredStudents.slice(0, 5).map((m) => (
-                        <div
-                          key={m.id}
-                          className="p-2 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-[11px]"
-                        >
-                          <div className="min-w-0">
-                            <span className="font-bold text-slate-900 truncate block">{m.fullName}</span>
-                            <span className="text-[10px] text-slate-500 font-mono">
-                              Cód: {m.accessCode} · Senha: {m.password || 'aluno123'}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDirectDemoLogin(m.accessCode, m.password || 'aluno123')}
-                            className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[10px] font-semibold shrink-0"
-                          >
-                            Entrar
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

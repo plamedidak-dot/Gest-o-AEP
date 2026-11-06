@@ -113,7 +113,6 @@ export default function App() {
     return (
       <LoginGatewayScreen
         settings={settings}
-        members={members}
         onLoginSuccess={(user) => {
           storage.setCurrentUser(user);
           setCurrentUser(user);
@@ -440,7 +439,6 @@ export default function App() {
         isOpen={isLoginOpen}
         currentUser={currentUser}
         settings={settings}
-        members={members}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={(user) => {
           setCurrentUser(user);

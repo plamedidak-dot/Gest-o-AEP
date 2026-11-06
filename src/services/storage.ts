@@ -821,17 +821,21 @@ class StorageService {
     this.saveNotifications(list);
   }
 
-  getCurrentUser(): UserProfile {
+  getCurrentUser(): UserProfile | null {
     const data = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
     if (!data) {
-      this.setCurrentUser(DEFAULT_ADMIN_USER);
-      return DEFAULT_ADMIN_USER;
+      return null;
     }
     try {
       return JSON.parse(data);
     } catch {
-      return DEFAULT_ADMIN_USER;
+      return null;
     }
+  }
+
+  logout(): void {
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    this.notifyChange();
   }
 
   setCurrentUser(user: UserProfile): void {
@@ -841,8 +845,8 @@ class StorageService {
 
   updateProfile(userId: string, data: Partial<UserProfile>): UserProfile | null {
     const currentUser = this.getCurrentUser();
-    if (currentUser.id === userId) {
-      const updated = { ...currentUser, ...data };
+    if (currentUser && currentUser.id === userId) {
+      const updated: UserProfile = { ...currentUser, ...data };
       this.setCurrentUser(updated);
 
       if (updated.memberId) {

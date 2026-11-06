@@ -155,10 +155,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       {/* Responsive Category Tabs (Abas) & Search Bar */}
       <div className="space-y-3">
         {/* Category Tabs (Abas de Documentos) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs scroll-smooth -mx-1 px-1">
           <button
             onClick={() => setCategoryFilter('all')}
-            className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all shadow-2xs flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all shadow-2xs flex items-center gap-2 shrink-0 ${
               categoryFilter === 'all'
                 ? 'bg-slate-900 text-white'
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -179,7 +179,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all shadow-2xs flex items-center gap-1.5 ${
+                className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all shadow-2xs flex items-center gap-1.5 shrink-0 ${
                   isSelected
                     ? 'bg-indigo-600 text-white'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'

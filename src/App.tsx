@@ -13,6 +13,7 @@ import { ReceiptModal } from './components/ReceiptModal';
 import { PdfReportModal, ReportType } from './components/PdfReportModal';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { LoginModal } from './components/LoginModal';
+import { LoginGatewayScreen } from './components/LoginGatewayScreen';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { storage } from './services/storage';
 import { 
@@ -37,7 +38,7 @@ import {
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('members'); // Open in members so user can immediately add or view
-  const [currentUser, setCurrentUser] = useState<UserProfile>(() => storage.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => storage.getCurrentUser());
   const [settings, setSettings] = useState<AssociationSettings>(() => storage.getSettings());
   const [members, setMembers] = useState<Member[]>(() => storage.getMembers());
   const [quotas, setQuotas] = useState<QuotaPayment[]>(() => storage.getQuotas());
@@ -94,13 +95,37 @@ export default function App() {
 
   // Strict non-administrative member protection
   useEffect(() => {
-    if (currentUser.role === 'member') {
+    if (currentUser?.role === 'member') {
       const adminTabs = ['dashboard', 'members', 'quotas', 'attendance', 'settings'];
       if (adminTabs.includes(currentTab)) {
         setCurrentTab('profile');
       }
     }
-  }, [currentUser.role, currentTab]);
+  }, [currentUser?.role, currentTab]);
+
+  const handleLogout = () => {
+    storage.logout();
+    setCurrentUser(null);
+  };
+
+  // If user is not authenticated yet, demand credentials
+  if (!currentUser) {
+    return (
+      <LoginGatewayScreen
+        settings={settings}
+        members={members}
+        onLoginSuccess={(user) => {
+          storage.setCurrentUser(user);
+          setCurrentUser(user);
+          if (user.role === 'admin') {
+            setCurrentTab('dashboard');
+          } else {
+            setCurrentTab('profile');
+          }
+        }}
+      />
+    );
+  }
 
   // Overall calculations for sidebar
   const totalMembersCount = members.length;
@@ -152,6 +177,7 @@ export default function App() {
         quotasUpToDatePercent={quotasUpToDatePercent}
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -168,6 +194,7 @@ export default function App() {
           onOpenLoginModal={() => setIsLoginOpen(true)}
           onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
           onUserChanged={setCurrentUser}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-3.5 sm:p-6 lg:p-8 overflow-y-auto pb-24 md:pb-8">

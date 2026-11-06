@@ -33,6 +33,7 @@ interface HeaderProps {
   onOpenLoginModal: () => void;
   onToggleMobileMenu?: () => void;
   onUserChanged: (user: UserProfile) => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -47,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLoginModal,
   onToggleMobileMenu,
   onUserChanged,
+  onLogout,
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -314,6 +316,21 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      onLogout();
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <LogOut className="w-4 h-4 text-rose-500" />
+                      <span>Terminar Sessão (Sair)</span>
+                    </div>
+                  </button>
+                )}
               </div>
             </div>
           )}

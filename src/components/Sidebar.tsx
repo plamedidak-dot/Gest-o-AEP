@@ -11,7 +11,8 @@ import {
   CreditCard,
   Shield,
   Award,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { AssociationSettings, UserProfile } from '../types';
 
@@ -24,6 +25,7 @@ interface SidebarProps {
   quotasUpToDatePercent: number;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   quotasUpToDatePercent,
   isMobileOpen = false,
   onCloseMobile,
+  onLogout,
 }) => {
   const isAdmin = currentUser.role === 'admin';
 
@@ -174,24 +177,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Footer Profile Mini-card */}
-      <div 
-        onClick={() => handleItemClick('profile')} 
-        className="p-3 mx-3 mb-3 border-t border-slate-800 rounded-xl hover:bg-slate-800/80 cursor-pointer transition-colors flex items-center justify-between"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-            isAdmin ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
-          }`}>
-            {currentUser.name.charAt(0)}
+      <div className="p-3 mx-3 mb-3 border-t border-slate-800 space-y-2">
+        <div 
+          onClick={() => handleItemClick('profile')} 
+          className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer transition-colors flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+              isAdmin ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+            }`}>
+              {currentUser.name.charAt(0)}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {isAdmin ? (currentUser.adminRole || 'Direção (Admin)') : `Sócio: ${currentUser.accessCode || 'Aluno'}`}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
-            <p className="text-[10px] text-slate-400 truncate">
-              {isAdmin ? (currentUser.adminRole || 'Direção (Admin)') : `Sócio: ${currentUser.accessCode || 'Aluno'}`}
-            </p>
-          </div>
+          <CreditCard className="w-3.5 h-3.5 text-slate-500 shrink-0" />
         </div>
-        <CreditCard className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+
+        {onLogout && (
+          <button
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              onLogout();
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 rounded-xl border border-rose-900/40 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Terminar Sessão</span>
+          </button>
+        )}
       </div>
     </>
   );

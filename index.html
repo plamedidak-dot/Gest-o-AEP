@@ -3,20 +3,103 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestão Académica | Sistema da Associação de Estudantes</title>
-    <meta name="description" content="Sistema integrado de gestão para associação de estudantes: gestão de membros, quotas, presenças, eventos e arquivo documental." />
+    
+    <!-- Título Principal para Mecanismos de Pesquisa (Google, Bing, Yahoo) -->
+    <title>Portal da Associação de Estudantes | Gestão Escolar &amp; Académica</title>
+    
+    <!-- Descrição e Palavras-chave para Indexação Google -->
+    <meta name="description" content="Portal oficial da Associação de Estudantes. Gestão integrada de membros, quotas escolares, eventos e presenças, actas oficiais e arquivo documental com controlo de acesso seguro." />
+    <meta name="keywords" content="associação de estudantes, portal da ae, gestão escolar, quotas escolares, membros estudantes, eventos académicos, actas de reuniões, arquivo documental, cartão de sócio estudante, assembleia de estudantes" />
+    <meta name="author" content="Associação de Estudantes" />
+    <meta name="application-name" content="Portal da Associação de Estudantes" />
+    <meta name="theme-color" content="#4f46e5" />
+
+    <!-- Google Search Console Verificação Oficial -->
     <meta name="google-site-verification" content="googlec1506b3a6f245c9b" />
-    <meta property="og:title" content="Gestão Académica | Sistema da Associação de Estudantes" />
-    <meta property="og:description" content="Sistema integrado de gestão para associação de estudantes: gestão de membros, quotas, presenças, eventos e arquivo documental." />
+
+    <!-- Instruções para Robôs de Busca (Googlebot, Bingbot) -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <!-- Canonical URL dinâmico para indexação correta nos motores de busca -->
+    <script>
+      (function() {
+        try {
+          var canonicalLink = document.createElement('link');
+          canonicalLink.rel = 'canonical';
+          canonicalLink.href = window.location.origin + window.location.pathname;
+          document.head.appendChild(canonicalLink);
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Ícones e Favicons para Resultados de Pesquisa no Google -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- OpenGraph Metadata (Facebook, WhatsApp, LinkedIn, Discord) -->
+    <meta property="og:locale" content="pt_PT" />
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="Portal da Associação de Estudantes | Gestão Escolar &amp; Académica" />
+    <meta property="og:description" content="Portal oficial da Associação de Estudantes: gestão de membros, quotas semanais, arquivo documental oficial e calendário escolar." />
+    <meta property="og:site_name" content="Portal da Associação de Estudantes" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image:alt" content="Logótipo e Brasão da Associação de Estudantes" />
+
+    <!-- Twitter / X Card Metadata -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Portal da Associação de Estudantes | Gestão Escolar &amp; Académica" />
+    <meta name="twitter:description" content="Portal oficial da Associação de Estudantes: gestão de membros, quotas, presenças e arquivo documental." />
+    <meta name="twitter:image" content="/og-image.jpg" />
+
+    <!-- Dados Estruturados Schema.org (JSON-LD) para Resultados Ricos no Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "/#webapp",
+          "name": "Portal da Associação de Estudantes",
+          "alternateName": "Sistema de Gestão AE",
+          "url": "/",
+          "description": "Sistema integrado de gestão para associação de estudantes: gestão de membros, quotas, eventos, presenças e arquivo documental oficial.",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "All",
+          "inLanguage": "pt",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "AOA"
+          }
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "/#organization",
+          "name": "Associação de Estudantes",
+          "description": "Órgão representativo dos estudantes para gestão de associados, eventos e documentação oficial escolar.",
+          "logo": "/favicon.png"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Tipografia Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white">
     <div id="root"></div>
+
+    <!-- Conteúdo Indexável para motores de busca mesmo antes da execução de scripts -->
+    <noscript>
+      <div style="padding: 2rem; font-family: sans-serif; text-align: center; background-color: #0f172a; color: #ffffff;">
+        <h1>Portal Oficial da Associação de Estudantes</h1>
+        <p>Sistema integrado de gestão escolar e académica: registo de membros, acompanhamento de quotas, convocatórias, actas de assembleias e arquivo documental.</p>
+        <p>Para aceder com todas as funcionalidades interativas, por favor ative o JavaScript no seu navegador.</p>
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

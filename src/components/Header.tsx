@@ -20,6 +20,7 @@ import {
 import { AppNotification, UserProfile } from '../types';
 import { storage } from '../services/storage';
 import { formatDateTimePt } from '../utils/formatters';
+import { isGlobalAdmin, canManageMembers, getUserBadgeInfo } from '../utils/permissions';
 
 interface HeaderProps {
   currentTab: string;
@@ -109,15 +110,9 @@ export const Header: React.FC<HeaderProps> = ({
         <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 truncate">
           {tabTitles[currentTab] || 'Associação de Estudantes'}
         </h1>
-        {currentUser.role === 'admin' ? (
-          <span className="hidden sm:inline-block ml-1 sm:ml-2 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded px-2 py-0.5 whitespace-nowrap">
-            {currentUser.adminRole || 'Administração'}
-          </span>
-        ) : (
-          <span className="hidden sm:inline-block ml-1 sm:ml-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5 whitespace-nowrap">
-            Membro ({currentUser.memberNumber || 'Aluno'})
-          </span>
-        )}
+        <span className={`hidden sm:inline-block ml-1 sm:ml-2 text-[11px] font-bold rounded px-2 py-0.5 whitespace-nowrap border ${getUserBadgeInfo(currentUser).badgeClass}`}>
+          {getUserBadgeInfo(currentUser).title}
+        </span>
       </div>
 
       {/* Zone 2: Global Search Bar */}
@@ -336,8 +331,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Zone 4: Primary Action depending on tab (Admin only) */}
-        {currentUser.role === 'admin' && (
+        {/* Zone 4: Primary Action depending on tab */}
+        {canManageMembers(currentUser) && (
           <div className="hidden sm:block">
             {currentTab === 'calendar' && onOpenNewEventModal && (
               <button
@@ -355,7 +350,7 @@ export const Header: React.FC<HeaderProps> = ({
                 + Novo Membro
               </button>
             )}
-            {currentTab === 'quotas' && onOpenNewQuotaModal && (
+            {currentTab === 'quotas' && isGlobalAdmin(currentUser) && onOpenNewQuotaModal && (
               <button
                 onClick={onOpenNewQuotaModal}
                 className="px-3.5 py-2 text-xs font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm"

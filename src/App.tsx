@@ -27,6 +27,7 @@ import {
   AppNotification 
 } from './types';
 import { getMemberQuotaStatus } from './utils/formatters';
+import { isGlobalAdmin, canManageDepartment } from './utils/permissions';
 import { 
   LayoutDashboard, 
   Users, 
@@ -93,15 +94,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Strict non-administrative member protection
+  // Role-based navigation protection
   useEffect(() => {
-    if (currentUser?.role === 'member') {
-      const adminTabs = ['dashboard', 'members', 'quotas', 'attendance', 'settings'];
-      if (adminTabs.includes(currentTab)) {
+    if (!currentUser) return;
+    if (currentUser.role === 'member') {
+      const nonMemberTabs = ['dashboard', 'members', 'quotas', 'attendance', 'settings'];
+      if (nonMemberTabs.includes(currentTab)) {
         setCurrentTab('profile');
       }
+    } else if (currentUser.role === 'coordinator' || currentUser.role === 'subcoordinator' || currentUser.role === 'secretary') {
+      // Department leaders and secretaries can access dashboard, members, attendance, documents, calendar
+      // Only general school settings and global quota treasury are reserved for Global Administration
+      if (currentTab === 'settings' || currentTab === 'quotas') {
+        setCurrentTab('dashboard');
+      }
     }
-  }, [currentUser?.role, currentTab]);
+  }, [currentUser, currentTab]);
 
   const handleLogout = () => {
     storage.logout();
@@ -116,7 +124,7 @@ export default function App() {
         onLoginSuccess={(user) => {
           storage.setCurrentUser(user);
           setCurrentUser(user);
-          if (user.role === 'admin') {
+          if (user.role === 'admin' || user.role === 'coordinator' || user.role === 'subcoordinator' || user.role === 'secretary') {
             setCurrentTab('dashboard');
           } else {
             setCurrentTab('profile');
@@ -450,7 +458,7 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar (md:hidden) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 flex items-center justify-around shadow-lg">
-        {currentUser.role === 'admin' ? (
+        {isGlobalAdmin(currentUser) ? (
           <>
             <button
               onClick={() => setCurrentTab('dashboard')}
@@ -491,6 +499,54 @@ export default function App() {
             <button
               onClick={() => setCurrentTab('profile')}
               className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                currentTab === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <UserCircle className="w-5 h-5" />
+              <span>Perfil</span>
+            </button>
+          </>
+        ) : canManageDepartment(currentUser) ? (
+          <>
+            <button
+              onClick={() => setCurrentTab('dashboard')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+                currentTab === 'dashboard' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Painel</span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('members')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+                currentTab === 'members' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              <span>Membros</span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('documents')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+                currentTab === 'documents' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              <span>Actas/Docs</span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('attendance')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+                currentTab === 'attendance' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <CalendarIcon className="w-5 h-5" />
+              <span>Presenças</span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('profile')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
                 currentTab === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
               }`}
             >

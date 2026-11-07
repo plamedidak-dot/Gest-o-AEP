@@ -15,6 +15,13 @@ import {
   LogOut
 } from 'lucide-react';
 import { AssociationSettings, UserProfile } from '../types';
+import { 
+  isGlobalAdmin, 
+  isDepartmentLeader, 
+  isDepartmentSecretary, 
+  canManageDepartment,
+  getUserBadgeInfo 
+} from '../utils/permissions';
 
 interface SidebarProps {
   currentTab: string;
@@ -39,7 +46,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onLogout,
 }) => {
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = isGlobalAdmin(currentUser);
+  const isLeader = isDepartmentLeader(currentUser);
+  const isSec = isDepartmentSecretary(currentUser);
+  const deptName = currentUser.department || 'Departamento';
 
   interface NavItem {
     id: string;
@@ -49,21 +59,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
     highlight?: boolean;
   }
 
-  // Strict role segregation: Regular members ONLY see their personal portal & public events/docs
-  const navItems: NavItem[] = isAdmin ? [
-    { id: 'dashboard', label: 'Painel Geral', icon: LayoutDashboard },
-    { id: 'calendar', label: 'Calendário & Eventos', icon: Calendar, badge: 'Interativo' },
-    { id: 'members', label: 'Membros & Sócios', icon: Users },
-    { id: 'quotas', label: 'Quotas & Tesouraria', icon: DollarSign },
-    { id: 'attendance', label: 'Presenças & Quórum', icon: CheckSquare },
-    { id: 'documents', label: 'Arquivo Documental', icon: FileText },
-    { id: 'profile', label: 'Meu Perfil & Quotas', icon: UserCircle },
-    { id: 'settings', label: 'Definições da Escola', icon: Settings },
-  ] : [
-    { id: 'profile', label: 'O Meu Perfil & Quotas', icon: UserCircle, highlight: true },
-    { id: 'calendar', label: 'Calendário Escolar', icon: Calendar },
-    { id: 'documents', label: 'Documentos Oficiais', icon: FileText },
-  ];
+  // Navigation segregated by administrative authority, department leadership, secretarial work, or student member
+  const getNavItems = (): NavItem[] => {
+    if (isAdmin) {
+      return [
+        { id: 'dashboard', label: 'Painel Geral', icon: LayoutDashboard },
+        { id: 'calendar', label: 'Calendário & Eventos', icon: Calendar, badge: 'Interativo' },
+        { id: 'members', label: 'Membros & Sócios', icon: Users },
+        { id: 'quotas', label: 'Quotas & Tesouraria', icon: DollarSign },
+        { id: 'attendance', label: 'Presenças & Quórum', icon: CheckSquare },
+        { id: 'documents', label: 'Arquivo Documental', icon: FileText },
+        { id: 'profile', label: 'Meu Perfil & Quotas', icon: UserCircle },
+        { id: 'settings', label: 'Definições da Escola', icon: Settings },
+      ];
+    }
+
+    if (isLeader) {
+      return [
+        { id: 'dashboard', label: `Painel do Departamento`, icon: LayoutDashboard },
+        { id: 'members', label: `Membros do Departamento`, icon: Users, badge: 'Gestão' },
+        { id: 'attendance', label: `Presenças & Chamadas`, icon: CheckSquare },
+        { id: 'calendar', label: `Reuniões do Departamento`, icon: Calendar },
+        { id: 'documents', label: `Documentos & Certidões`, icon: FileText },
+        { id: 'profile', label: `O Meu Perfil`, icon: UserCircle },
+      ];
+    }
+
+    if (isSec) {
+      return [
+        { id: 'dashboard', label: `Secretaria do Dept.`, icon: LayoutDashboard },
+        { id: 'members', label: `Registo de Membros`, icon: Users, badge: 'Secretaria' },
+        { id: 'documents', label: `Actas & Arquivo Oficial`, icon: FileText, badge: 'Actas' },
+        { id: 'attendance', label: `Folhas de Presença`, icon: CheckSquare },
+        { id: 'calendar', label: `Convocatórias & Reuniões`, icon: Calendar },
+        { id: 'profile', label: `O Meu Perfil`, icon: UserCircle },
+      ];
+    }
+
+    return [
+      { id: 'profile', label: 'O Meu Perfil & Quotas', icon: UserCircle, highlight: true },
+      { id: 'calendar', label: 'Calendário Escolar', icon: Calendar },
+      { id: 'documents', label: 'Documentos Oficiais', icon: FileText },
+    ];
+  };
+
+  const navItems = getNavItems();
 
   const logoSrc = settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg';
 
@@ -115,7 +155,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Navigation Links */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          {isAdmin ? 'Módulos de Gestão Administrativa' : 'Área do Membro / Aluno'}
+          {isAdmin 
+            ? 'Módulos de Gestão Administrativa' 
+            : isLeader 
+              ? `Coordenação · ${deptName}` 
+              : isSec 
+                ? `Secretaria · ${deptName}` 
+                : 'Área do Membro / Aluno'}
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -164,6 +210,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
         </div>
+      ) : (isLeader || isSec) ? (
+        <div className="p-3 mx-3 mb-3 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs">
+          <div className="flex items-center gap-2 text-sky-300 font-bold mb-1">
+            <Shield className="w-4 h-4 text-sky-400 shrink-0" />
+            <span className="truncate">{deptName}</span>
+          </div>
+          <p className="text-[11px] text-slate-300">
+            Cargo: <strong className="text-white">{currentUser.departmentRole || (isLeader ? 'Coordenador' : 'Secretária')}</strong>
+          </p>
+          <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+            {isSec 
+              ? 'Trabalho de Secretaria: gestão de membros, actas, convocatórias e presenças.' 
+              : 'Gestão autorizada de membros, actas e chamadas deste departamento.'}
+          </p>
+        </div>
       ) : (
         <div className="p-3 mx-3 mb-3 rounded-xl bg-indigo-950/40 border border-indigo-800/40 text-xs">
           <div className="flex items-center gap-2 text-indigo-300 font-bold mb-1">
@@ -184,14 +245,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-              isAdmin ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+              isAdmin 
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30' 
+                : (isLeader || isSec)
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-400/30'
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
             }`}>
               {currentUser.name.charAt(0)}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
               <p className="text-[10px] text-slate-400 truncate">
-                {isAdmin ? (currentUser.adminRole || 'Direção (Admin)') : `Sócio: ${currentUser.accessCode || 'Aluno'}`}
+                {getUserBadgeInfo(currentUser).title}
               </p>
             </div>
           </div>

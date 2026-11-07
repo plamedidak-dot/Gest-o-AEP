@@ -71,6 +71,8 @@ export const ADMIN_ACCOUNTS: UserProfile[] = [
     name: 'Presidente da AE',
     role: 'admin',
     adminRole: 'Presidente',
+    department: 'Departamento Administrativo',
+    departmentRole: 'Presidente',
     accessCode: 'AE-PRESIDENTE',
     password: 'admin123',
     phone: '+244 923 000 001',
@@ -85,6 +87,8 @@ export const ADMIN_ACCOUNTS: UserProfile[] = [
     name: 'Vice-Presidente da AE',
     role: 'admin',
     adminRole: 'Vice-Presidente',
+    department: 'Departamento Administrativo',
+    departmentRole: 'Vice-Presidente',
     accessCode: 'AE-VICE',
     password: 'vice123',
     phone: '+244 923 000 002',
@@ -99,6 +103,8 @@ export const ADMIN_ACCOUNTS: UserProfile[] = [
     name: 'Secretária da AE',
     role: 'admin',
     adminRole: 'Secretária',
+    department: 'Departamento Administrativo',
+    departmentRole: 'Secretária',
     accessCode: 'AE-SECRETARIA',
     password: 'sec123',
     phone: '+244 923 000 003',
@@ -113,6 +119,8 @@ export const ADMIN_ACCOUNTS: UserProfile[] = [
     name: 'Tesoureiro da AE',
     role: 'admin',
     adminRole: 'Tesoureiro',
+    department: 'Departamento Administrativo',
+    departmentRole: 'Tesoureiro',
     accessCode: 'AE-TESOURARIA',
     password: 'tesouro123',
     phone: '+244 923 000 004',
@@ -473,10 +481,27 @@ class StorageService {
     };
   }
 
+  resolveMemberUserRole(member: Member): { role: UserRole; adminRole?: AdminRole } {
+    const isAdm = this.isAdministrativeMember(member);
+    if (isAdm) {
+      return { role: 'admin', adminRole: member.departmentRole as AdminRole };
+    }
+    const roleLower = (member.departmentRole || '').toLowerCase();
+    if (roleLower.includes('subcoordenador') || roleLower.includes('vice-coordenador')) {
+      return { role: 'subcoordinator' };
+    }
+    if (roleLower.includes('coordenador')) {
+      return { role: 'coordinator' };
+    }
+    if (roleLower.includes('secretár') || roleLower.includes('secretar')) {
+      return { role: 'secretary' };
+    }
+    return { role: 'member' };
+  }
+
   private saveMemberUserProfile(member: Member): void {
     const isAdm = this.isAdministrativeMember(member);
-    const role: UserRole = isAdm ? 'admin' : 'member';
-    const adminRole = isAdm ? (member.departmentRole as AdminRole) : undefined;
+    const { role, adminRole } = this.resolveMemberUserRole(member);
 
     const profiles = this.getUserProfiles();
     const existingIdx = profiles.findIndex(p => p.memberId === member.id || p.accessCode === member.accessCode);
@@ -490,6 +515,8 @@ class StorageService {
       name: member.fullName,
       role,
       adminRole,
+      department: member.department,
+      departmentRole: member.departmentRole,
       phone: member.phone,
       bio: `${member.departmentRole} no ${member.department} (${member.classLevel || 'Estudante'})`,
       joinedYear: new Date().getFullYear().toString(),
@@ -558,7 +585,7 @@ class StorageService {
 
     if (member) {
       if (member.password === cleanPass || cleanPass === '123456' || cleanPass === 'aluno123') {
-        const isAdm = this.isAdministrativeMember(member);
+        const { role, adminRole } = this.resolveMemberUserRole(member);
         const memberUser: UserProfile = {
           id: `usr-${member.id}`,
           memberId: member.id,
@@ -566,8 +593,10 @@ class StorageService {
           accessCode: member.accessCode,
           name: member.fullName,
           email: member.email,
-          role: isAdm ? 'admin' : 'member',
-          adminRole: isAdm ? (member.departmentRole as AdminRole) : undefined,
+          role,
+          adminRole,
+          department: member.department,
+          departmentRole: member.departmentRole,
           phone: member.phone,
           bio: `${member.departmentRole} no ${member.department}`,
           joinedYear: member.joinDate?.slice(0, 4) || '2026',

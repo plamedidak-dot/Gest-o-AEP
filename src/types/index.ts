@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'coordinator' | 'subcoordinator' | 'secretary' | 'member';
 export type AdminRole = 'Presidente' | 'Vice-Presidente' | 'Secretária' | 'Secretário-Geral' | 'Tesoureiro' | string;
 export type DepartmentRole = 'Coordenador' | 'Vice-Coordenador' | 'Subcoordenador' | 'Secretária' | 'Membro' | string;
 
@@ -8,6 +8,8 @@ export interface UserProfile {
   name: string;
   role: UserRole;
   adminRole?: AdminRole;
+  department?: string; // Departamento associado (ex: "Departamento Pedagógico")
+  departmentRole?: string; // Cargo departamental (ex: "Coordenador", "Subcoordenador", "Secretária")
   memberId?: string;
   memberNumber?: string; // Nº de Associado (ex: SOC-001)
   accessCode?: string; // Código de Acesso (ex: AE-PRESIDENTE ou AE-PROC1042)

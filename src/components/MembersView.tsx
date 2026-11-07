@@ -33,7 +33,8 @@ import {
   isDepartmentSecretary, 
   canManageDepartment, 
   canManageMembers, 
-  isMemberInUserScope 
+  isMemberInUserScope,
+  getAccessibleMembers 
 } from '../utils/permissions';
 
 interface MembersViewProps {
@@ -91,8 +92,18 @@ export const MembersView: React.FC<MembersViewProps> = ({
   const [selectedDept, setSelectedDept] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('');
 
-  // Collect all unique department names (from custom list + any existing member records)
+  // Filter members strictly according to user permissions:
+  // Central admin: all members.
+  // Department heads (Coordenador, Subcoordenador, Secretária): strictly members belonging to their department.
+  const scopedMembers = useMemo(() => {
+    return getAccessibleMembers(currentUser, members);
+  }, [currentUser, members]);
+
+  // Collect unique department names (if admin: all departments; if department head: strictly user's department)
   const allDepartmentNames = useMemo(() => {
+    if (!isGlobalAdmin(currentUser) && currentUser.department) {
+      return [currentUser.department];
+    }
     const list: string[] = customDepartments.map(d => d.name);
     members.forEach(m => {
       if (m.department && !list.includes(m.department)) {
@@ -100,7 +111,7 @@ export const MembersView: React.FC<MembersViewProps> = ({
       }
     });
     return list;
-  }, [customDepartments, members]);
+  }, [customDepartments, members, currentUser]);
 
   // Check if department is Administrative (Presidente / Vice-Presidente only allowed here)
   const isAdministrativeDept = (deptName: string): boolean => {
@@ -156,9 +167,9 @@ export const MembersView: React.FC<MembersViewProps> = ({
     );
   };
 
-  // Filtered members
+  // Filtered members restricted strictly to accessible scope
   const filteredMembers = useMemo(() => {
-    return members.filter(m => {
+    return scopedMembers.filter(m => {
       const matchesSearch =
         m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.studentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -168,12 +179,16 @@ export const MembersView: React.FC<MembersViewProps> = ({
         (m.department && m.department.toLowerCase().includes(searchTerm.toLowerCase()));
       if (!matchesSearch) return false;
 
-      if (departmentFilter !== 'all' && m.department !== departmentFilter) return false;
-      if (classFilter !== 'all' && m.classLevel !== classFilter) return false;
+      if (isGlobalAdmin(currentUser) && departmentFilter !== 'all' && m.department !== departmentFilter) {
+        return false;
+      }
+      if (classFilter !== 'all' && m.classLevel !== classFilter) {
+        return false;
+      }
 
       return true;
     });
-  }, [members, searchTerm, departmentFilter, classFilter]);
+  }, [scopedMembers, searchTerm, departmentFilter, classFilter, currentUser]);
 
   // Export CSV
   const handleExportCsv = () => {
@@ -462,18 +477,26 @@ export const MembersView: React.FC<MembersViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto text-xs">
-          <select
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none"
-          >
-            <option value="all">
-              {allDepartmentNames.length === 0 ? 'Sem Departamentos' : `Todos os Departamentos (${allDepartmentNames.length})`}
-            </option>
-            {allDepartmentNames.map(dep => (
-              <option key={dep} value={dep}>{dep}</option>
-            ))}
-          </select>
+          {isGlobalAdmin(currentUser) ? (
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none"
+            >
+              <option value="all">
+                {allDepartmentNames.length === 0 ? 'Sem Departamentos' : `Todos os Departamentos (${allDepartmentNames.length})`}
+              </option>
+              {allDepartmentNames.map(dep => (
+                <option key={dep} value={dep}>{dep}</option>
+              ))}
+            </select>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-900 shrink-0">
+              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{currentUser.department || 'Meu Departamento'}</span>
+              <span className="text-[10px] bg-indigo-200/70 text-indigo-900 px-1.5 py-0.2 rounded font-semibold">Exclusivo</span>
+            </div>
+          )}
 
           <select
             value={classFilter}
@@ -493,6 +516,25 @@ export const MembersView: React.FC<MembersViewProps> = ({
 
       {/* Members Container: Responsive Mobile Cards + Desktop Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        {/* Scope and Count Indicator Banner */}
+        <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-800">
+              {!isGlobalAdmin(currentUser) 
+                ? `Membros Associados ao ${currentUser.department || 'Departamento'}`
+                : 'Quadro Geral de Membros da Associação'}
+            </span>
+            <span className="text-[11px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">
+              {filteredMembers.length} {filteredMembers.length === 1 ? 'membro' : 'membros'}
+            </span>
+          </div>
+          {!isGlobalAdmin(currentUser) && (
+            <span className="text-[11px] text-slate-500 font-medium">
+              Acesso restrito exclusivamente ao seu departamento ({currentUser.department})
+            </span>
+          )}
+        </div>
+
         {/* Desktop Table View (Hidden on mobile) */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -722,18 +764,24 @@ export const MembersView: React.FC<MembersViewProps> = ({
         {filteredMembers.length === 0 && (
           <div className="py-12 text-center p-4">
             <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-slate-700">Ainda não existem membros registados</p>
+            <p className="text-sm font-semibold text-slate-700">
+              {!isGlobalAdmin(currentUser)
+                ? `Nenhum membro encontrado no ${currentUser.department || 'departamento'}`
+                : 'Ainda não existem membros registados'}
+            </p>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              O sistema está limpo. Comece por registar o Presidente, Vice-Presidente ou Coordenadores de departamento.
+              {!isGlobalAdmin(currentUser)
+                ? `Como líder ou secretária do departamento, o seu acesso está restrito aos membros da sua área. Registe o Coordenador, Subcoordenador, Secretária ou Alunos associados ao ${currentUser.department}.`
+                : 'O sistema está limpo. Comece por registar o Presidente, Vice-Presidente ou Coordenadores de departamento.'}
             </p>
             <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
               <button
                 onClick={() => openAddModal()}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-sm"
               >
-                + Registar Primeiro Membro
+                {!isGlobalAdmin(currentUser) ? `+ Registar Membro no ${currentUser.department || 'Dept'}` : '+ Registar Primeiro Membro'}
               </button>
-              {onLoadSampleData && (
+              {isGlobalAdmin(currentUser) && onLoadSampleData && (
                 <button
                   onClick={onLoadSampleData}
                   className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold"

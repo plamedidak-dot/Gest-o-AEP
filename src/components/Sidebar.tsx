@@ -216,13 +216,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Shield className="w-4 h-4 text-sky-400 shrink-0" />
             <span className="truncate">{deptName}</span>
           </div>
+          <div className="flex items-center justify-between text-xs text-slate-400 my-1">
+            <span>Membros do Dept.</span>
+            <span className="font-semibold text-white tabular-nums">{totalMembers}</span>
+          </div>
           <p className="text-[11px] text-slate-300">
             Cargo: <strong className="text-white">{currentUser.departmentRole || (isLeader ? 'Coordenador' : 'Secretária')}</strong>
           </p>
           <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
             {isSec 
-              ? 'Trabalho de Secretaria: gestão de membros, actas, convocatórias e presenças.' 
-              : 'Gestão autorizada de membros, actas e chamadas deste departamento.'}
+              ? 'Secretaria: Acesso exclusivo aos membros e actas do seu departamento.' 
+              : 'Coordenação: Acesso exclusivo aos membros associados ao seu departamento.'}
           </p>
         </div>
       ) : (

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Member, AssociationEvent, AssociationDocument, UserProfile } from '../types';
 import { formatDatePt } from '../utils/formatters';
+import { getAccessibleMembers } from '../utils/permissions';
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
@@ -71,8 +72,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   const q = query.trim().toLowerCase();
 
-  // Search filter
-  const matchedMembers = q ? members.filter(m => 
+  // Search filter - strictly limited to members in the user's accessible scope
+  const accessibleMembers = getAccessibleMembers(currentUser, members);
+  const matchedMembers = q ? accessibleMembers.filter(m => 
     m.fullName.toLowerCase().includes(q) ||
     m.studentNumber.toLowerCase().includes(q) ||
     (m.memberNumber && m.memberNumber.toLowerCase().includes(q)) ||

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -27,7 +27,7 @@ import {
   AppNotification 
 } from './types';
 import { getMemberQuotaStatus } from './utils/formatters';
-import { isGlobalAdmin, canManageDepartment } from './utils/permissions';
+import { isGlobalAdmin, canManageDepartment, getAccessibleMembers } from './utils/permissions';
 import { 
   LayoutDashboard, 
   Users, 
@@ -134,9 +134,14 @@ export default function App() {
     );
   }
 
-  // Overall calculations for sidebar
-  const totalMembersCount = members.length;
-  const membersWithQuotasInGoodStanding = members.filter(m => getMemberQuotaStatus(m, quotas).isUpToDate).length;
+  // Members strictly accessible to the user (department heads only have access to their department)
+  const accessibleMembers = useMemo(() => {
+    return getAccessibleMembers(currentUser, members);
+  }, [currentUser, members]);
+
+  // Overall calculations for sidebar (scoped to user's administrative responsibility)
+  const totalMembersCount = isGlobalAdmin(currentUser) ? members.length : accessibleMembers.length;
+  const membersWithQuotasInGoodStanding = accessibleMembers.filter(m => getMemberQuotaStatus(m, quotas).isUpToDate).length;
   const quotasUpToDatePercent = totalMembersCount > 0 
     ? Math.round((membersWithQuotasInGoodStanding / totalMembersCount) * 100)
     : 100;
@@ -233,7 +238,7 @@ export default function App() {
 
           {currentTab === 'members' && (
             <MembersView
-              members={members}
+              members={accessibleMembers}
               quotas={quotas}
               currentUser={currentUser}
               settings={settings}
@@ -351,7 +356,7 @@ export default function App() {
           {currentTab === 'documents' && (
             <DocumentsView
               documents={documents}
-              members={members}
+              members={accessibleMembers}
               settings={settings}
               currentUser={currentUser}
               preselectedCertificateMember={preselectedCertMember}
@@ -388,7 +393,7 @@ export default function App() {
       {attendanceDeskEvent && (
         <AttendanceManagerModal
           event={attendanceDeskEvent}
-          members={members}
+          members={accessibleMembers}
           attendance={attendance}
           settings={settings}
           onClose={() => setAttendanceDeskEvent(null)}
@@ -410,7 +415,7 @@ export default function App() {
         <PdfReportModal
           type={pdfReportState.type}
           settings={settings}
-          members={members}
+          members={accessibleMembers}
           quotas={quotas}
           event={pdfReportState.event}
           attendance={attendance.filter(a => !pdfReportState.event || a.eventId === pdfReportState.event.id)}
@@ -422,7 +427,7 @@ export default function App() {
       <GlobalSearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        members={members}
+        members={accessibleMembers}
         events={events}
         documents={documents}
         currentUser={currentUser}

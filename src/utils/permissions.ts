@@ -73,6 +73,27 @@ export const isMemberInUserScope = (user: UserProfile, member: Member): boolean 
 };
 
 /**
+ * Returns strictly the members accessible to the user:
+ * - Central Admin: all members
+ * - Department heads (Coordenador, Subcoordenador, Secretária): ONLY members associated with their department
+ * - Regular member: only their own member record
+ */
+export const getAccessibleMembers = (user: UserProfile, members: Member[]): Member[] => {
+  if (isGlobalAdmin(user)) return members;
+  if (isDepartmentLeader(user) || isDepartmentSecretary(user)) {
+    if (!user.department) return [];
+    const deptLower = user.department.trim().toLowerCase();
+    return members.filter(m => (m.department || '').trim().toLowerCase() === deptLower);
+  }
+  // Regular member: only their own record
+  return members.filter(m => 
+    (user.memberId && m.id === user.memberId) || 
+    (user.accessCode && m.accessCode?.toLowerCase() === user.accessCode?.toLowerCase()) ||
+    (user.memberNumber && m.memberNumber?.toLowerCase() === user.memberNumber?.toLowerCase())
+  );
+};
+
+/**
  * Return a human-readable title badge for the user
  */
 export const getUserBadgeInfo = (user: UserProfile): { title: string; badgeClass: string; roleType: string } => {

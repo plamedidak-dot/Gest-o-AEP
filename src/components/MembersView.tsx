@@ -27,6 +27,14 @@ import { exportToCsv, formatDatePt, getMemberQuotaStatus } from '../utils/format
 import { QRCodeSvg } from './QRCodeSvg';
 import { MemberCredentialsModal } from './MemberCredentialsModal';
 import { ConfirmDialog } from './ConfirmDialog';
+import { 
+  isGlobalAdmin, 
+  isDepartmentLeader, 
+  isDepartmentSecretary, 
+  canManageDepartment, 
+  canManageMembers, 
+  isMemberInUserScope 
+} from '../utils/permissions';
 
 interface MembersViewProps {
   members: Member[];
@@ -54,7 +62,12 @@ export const MembersView: React.FC<MembersViewProps> = ({
   onNavigateTab,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>(() => {
+    if (!isGlobalAdmin(currentUser) && currentUser.department) {
+      return currentUser.department;
+    }
+    return 'all';
+  });
   const [classFilter, setClassFilter] = useState<string>('all');
   const [selectedMemberForCard, setSelectedMemberForCard] = useState<Member | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -100,12 +113,12 @@ export const MembersView: React.FC<MembersViewProps> = ({
 
   // Roles available for a department:
   // - Administrative area: Presidente, Vice-Presidente, Secretário-Geral, Tesoureiro
-  // - Other departments: ONLY Coordenador, Subcoordenador, Secretária
+  // - Other departments: Coordenador, Subcoordenador, Secretária, Membro
   const getAllowedRoles = (deptName: string): string[] => {
     if (isAdministrativeDept(deptName)) {
       return ['Presidente', 'Vice-Presidente', 'Secretário-Geral', 'Tesoureiro'];
     }
-    return ['Coordenador', 'Subcoordenador', 'Secretária'];
+    return ['Coordenador', 'Subcoordenador', 'Secretária', 'Membro'];
   };
 
   // Badge styling for roles
@@ -135,6 +148,7 @@ export const MembersView: React.FC<MembersViewProps> = ({
   // Find member already occupying a role in a given department (Rule: Não pode ter dois cargos iguais em um departamento)
   const getRoleOccupant = (deptName: string, roleName: string, excludeMemberId?: string): Member | undefined => {
     if (!deptName || !roleName) return undefined;
+    if (roleName.trim().toLowerCase() === 'membro') return undefined; // 'Membro' can be assigned to multiple students
     return members.find(m => 
       m.department.trim().toLowerCase() === deptName.trim().toLowerCase() &&
       m.departmentRole.trim().toLowerCase() === roleName.trim().toLowerCase() &&
@@ -350,7 +364,9 @@ export const MembersView: React.FC<MembersViewProps> = ({
       setSelectedRole(member.departmentRole || '');
     } else {
       setEditingMember(null);
-      const defaultDept = allDepartmentNames[0] || '';
+      const defaultDept = (!isGlobalAdmin(currentUser) && currentUser.department)
+        ? currentUser.department
+        : (allDepartmentNames[0] || '');
       setSelectedDept(defaultDept);
       if (defaultDept) {
         const roles = getAllowedRoles(defaultDept);
@@ -370,10 +386,20 @@ export const MembersView: React.FC<MembersViewProps> = ({
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <School className="w-5 h-5 text-indigo-600" />
-            <span>Membros & Departamentos da Escola</span>
+            <span>
+              {isDepartmentSecretary(currentUser)
+                ? `Secretaria · ${currentUser.department || 'Departamento'}`
+                : isDepartmentLeader(currentUser)
+                ? `Gestão · ${currentUser.department || 'Departamento'}`
+                : 'Membros & Departamentos da Escola'}
+            </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Quadro executivo da Associação: Presidente e Vice-Presidente (Administrativo) e Coordenadores por departamento
+            {isDepartmentSecretary(currentUser)
+              ? `Registo e emissão de fichas de membros, actas e cartões de sócio do ${currentUser.department || 'Departamento'}`
+              : isDepartmentLeader(currentUser)
+              ? `Liderança, membros e acompanhamento dos trabalhos do ${currentUser.department || 'Departamento'}`
+              : 'Quadro executivo da Associação: Presidente e Vice-Presidente (Administrativo) e Coordenadores por departamento'}
           </p>
         </div>
 
@@ -396,25 +422,29 @@ export const MembersView: React.FC<MembersViewProps> = ({
             <span>CSV (Excel)</span>
           </button>
 
-          {currentUser.role === 'admin' && (
-            <>
-              <button
-                onClick={() => setShowDeptManagerModal(true)}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-colors border border-slate-200"
-                title="Criar e gerir departamentos da associação escolar"
-              >
-                <Building2 className="w-4 h-4 text-indigo-600" />
-                <span>Departamentos ({allDepartmentNames.length})</span>
-              </button>
+          {isGlobalAdmin(currentUser) && (
+            <button
+              onClick={() => setShowDeptManagerModal(true)}
+              className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-colors border border-slate-200"
+              title="Criar e gerir departamentos da associação escolar"
+            >
+              <Building2 className="w-4 h-4 text-indigo-600" />
+              <span>Departamentos ({allDepartmentNames.length})</span>
+            </button>
+          )}
 
-              <button
-                onClick={() => openAddModal()}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Membro</span>
-              </button>
-            </>
+          {canManageMembers(currentUser) && (
+            <button
+              onClick={() => openAddModal()}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>
+                {isDepartmentSecretary(currentUser)
+                  ? 'Registar Membro'
+                  : 'Adicionar Membro'}
+              </span>
+            </button>
           )}
         </div>
       </div>
@@ -548,26 +578,29 @@ export const MembersView: React.FC<MembersViewProps> = ({
                         <FileText className="w-4 h-4" />
                       </button>
 
-                      {currentUser.role === 'admin' && (
+                      {isGlobalAdmin(currentUser) && (
+                        <button
+                          onClick={() => onOpenNewQuotaModalWithMember(member)}
+                          className="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded transition-colors"
+                          title="Cobrar quota semanal (500 Kz)"
+                        >
+                          + Quota
+                        </button>
+                      )}
+
+                      {canManageMembers(currentUser) && (isGlobalAdmin(currentUser) || isMemberInUserScope(currentUser, member)) && (
                         <>
-                          <button
-                            onClick={() => onOpenNewQuotaModalWithMember(member)}
-                            className="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded transition-colors"
-                            title="Cobrar quota semanal (500 Kz)"
-                          >
-                            + Quota
-                          </button>
                           <button
                             onClick={() => openAddModal(member)}
                             className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="Editar"
+                            title="Editar Dados do Membro"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteMember(member)}
                             className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Remover"
+                            title="Remover Membro"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -653,28 +686,34 @@ export const MembersView: React.FC<MembersViewProps> = ({
                   </button>
                 </div>
 
-                {currentUser.role === 'admin' && (
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1">
+                  {isGlobalAdmin(currentUser) && (
                     <button
                       onClick={() => onOpenNewQuotaModalWithMember(member)}
                       className="px-2.5 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 rounded-lg"
                     >
                       + Quota
                     </button>
-                    <button
-                      onClick={() => openAddModal(member)}
-                      className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMember(member)}
-                      className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
+                  )}
+                  {canManageMembers(currentUser) && (isGlobalAdmin(currentUser) || isMemberInUserScope(currentUser, member)) && (
+                    <>
+                      <button
+                        onClick={() => openAddModal(member)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                        title="Editar"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMember(member)}
+                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg"
+                        title="Remover"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -861,75 +900,95 @@ export const MembersView: React.FC<MembersViewProps> = ({
               <div className="p-3.5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3">
                 {/* Department Selection */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block font-bold text-indigo-950">
-                      Departamento da Associação Escolar *
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowInlineNewDept(!showInlineNewDept)}
-                      className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      <span>{showInlineNewDept ? 'Cancelar Novo' : '+ Criar Departamento'}</span>
-                    </button>
-                  </div>
-
-                  {allDepartmentNames.length === 0 || showInlineNewDept ? (
-                    <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-2 mb-2">
-                      <p className="text-[11px] font-bold text-slate-800">
-                        {allDepartmentNames.length === 0 
-                          ? 'Ainda não existem departamentos criados. Digite o nome do departamento que deseja criar:' 
-                          : 'Novo Departamento a criar:'}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder="Ex: Departamento Administrativo ou Departamento Pedagógico"
-                          value={inlineDeptName}
-                          onChange={(e) => setInlineDeptName(e.target.value)}
-                          className="flex-1 px-3 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (inlineDeptName.trim()) {
-                              handleCreateDepartment(inlineDeptName.trim(), inlineDeptIsAdmin);
-                            }
-                          }}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shrink-0"
-                        >
-                          Criar
-                        </button>
+                  {!isGlobalAdmin(currentUser) && currentUser.department ? (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block font-bold text-indigo-950">
+                          Departamento Atribuído *
+                        </label>
+                        <span className="text-[10px] text-teal-800 bg-teal-100 font-bold px-2 py-0.5 rounded">
+                          {isDepartmentSecretary(currentUser) ? 'Secretaria do Dept.' : 'Coordenação'}
+                        </span>
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700 pt-1">
-                        <input
-                          type="checkbox"
-                          checked={inlineDeptIsAdmin}
-                          onChange={(e) => setInlineDeptIsAdmin(e.target.checked)}
-                          className="rounded text-indigo-600"
-                        />
-                        <span>É a Área Administrativa da Associação? (Habilita os cargos exclusivos de Presidente e Vice-Presidente)</span>
-                      </label>
+                      <div className="p-3 bg-white border border-indigo-200 rounded-lg text-xs font-bold text-indigo-900 flex items-center justify-between shadow-xs">
+                        <span>{currentUser.department}</span>
+                        <span className="text-[10px] font-normal text-slate-500">Exclusivo do seu departamento</span>
+                      </div>
+                      <input type="hidden" name="department" value={currentUser.department} />
                     </div>
                   ) : (
-                    <select
-                      name="department"
-                      value={selectedDept}
-                      onChange={(e) => {
-                        const newDept = e.target.value;
-                        setSelectedDept(newDept);
-                        setFormError(null);
-                        const roles = getAllowedRoles(newDept);
-                        const firstFree = roles.find(r => !getRoleOccupant(newDept, r, editingMember?.id));
-                        setSelectedRole(firstFree || roles[0]);
-                      }}
-                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
-                    >
-                      {allDepartmentNames.map(dep => (
-                        <option key={dep} value={dep}>{dep}</option>
-                      ))}
-                    </select>
+                    <>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block font-bold text-indigo-950">
+                          Departamento da Associação Escolar *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowInlineNewDept(!showInlineNewDept)}
+                          className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" />
+                          <span>{showInlineNewDept ? 'Cancelar Novo' : '+ Criar Departamento'}</span>
+                        </button>
+                      </div>
+
+                      {allDepartmentNames.length === 0 || showInlineNewDept ? (
+                        <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-2 mb-2">
+                          <p className="text-[11px] font-bold text-slate-800">
+                            {allDepartmentNames.length === 0 
+                              ? 'Ainda não existem departamentos criados. Digite o nome do departamento que deseja criar:' 
+                              : 'Novo Departamento a criar:'}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="Ex: Departamento Administrativo ou Departamento Pedagógico"
+                              value={inlineDeptName}
+                              onChange={(e) => setInlineDeptName(e.target.value)}
+                              className="flex-1 px-3 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (inlineDeptName.trim()) {
+                                  handleCreateDepartment(inlineDeptName.trim(), inlineDeptIsAdmin);
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shrink-0"
+                            >
+                              Criar
+                            </button>
+                          </div>
+                          <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700 pt-1">
+                            <input
+                              type="checkbox"
+                              checked={inlineDeptIsAdmin}
+                              onChange={(e) => setInlineDeptIsAdmin(e.target.checked)}
+                              className="rounded text-indigo-600"
+                            />
+                            <span>É a Área Administrativa da Associação? (Habilita os cargos exclusivos de Presidente e Vice-Presidente)</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <select
+                          name="department"
+                          value={selectedDept}
+                          onChange={(e) => {
+                            const newDept = e.target.value;
+                            setSelectedDept(newDept);
+                            setFormError(null);
+                            const roles = getAllowedRoles(newDept);
+                            const firstFree = roles.find(r => !getRoleOccupant(newDept, r, editingMember?.id));
+                            setSelectedRole(firstFree || roles[0]);
+                          }}
+                          className="w-full px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
+                        >
+                          {allDepartmentNames.map(dep => (
+                            <option key={dep} value={dep}>{dep}</option>
+                          ))}
+                        </select>
+                      )}
+                    </>
                   )}
                 </div>
 

@@ -18,6 +18,12 @@ import { storage } from '../services/storage';
 import { formatDatePt } from '../utils/formatters';
 import { QRCodeSvg } from './QRCodeSvg';
 import { ConfirmDialog } from './ConfirmDialog';
+import { 
+  canManageDocuments, 
+  isDepartmentSecretary, 
+  isDepartmentLeader, 
+  isGlobalAdmin 
+} from '../utils/permissions';
 
 interface DocumentsViewProps {
   documents: AssociationDocument[];
@@ -124,10 +130,18 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-600" />
-            <span>Arquivo Documental & Declarações Oficiais</span>
+            <span>
+              {isDepartmentSecretary(currentUser)
+                ? `Actas & Arquivo da Secretaria · ${currentUser.department || 'Departamento'}`
+                : isDepartmentLeader(currentUser)
+                ? `Documentos & Actas · ${currentUser.department || 'Departamento'}`
+                : 'Arquivo Documental & Declarações Oficiais'}
+            </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Estatutos, actas de assembleias, convocatórias, relatórios e gerador de certidões académicas
+            {isDepartmentSecretary(currentUser)
+              ? `Lavratura de actas de reuniões, elaboração de convocatórias, ofícios e certidões do ${currentUser.department || 'Departamento'}`
+              : 'Estatutos, actas de assembleias, convocatórias, relatórios e gerador de certidões académicas'}
           </p>
         </div>
 
@@ -140,13 +154,17 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
             <span>Emitir Certidão de Sócio</span>
           </button>
 
-          {currentUser.role === 'admin' && (
+          {canManageDocuments(currentUser) && (
             <button
               onClick={() => setShowAddDocModal(true)}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Arquivar Novo Documento</span>
+              <span>
+                {isDepartmentSecretary(currentUser)
+                  ? 'Lavrar Acta / Novo Documento'
+                  : 'Arquivar Novo Documento'}
+              </span>
             </button>
           )}
         </div>
@@ -258,7 +276,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                     <span>Ler Documento</span>
                   </button>
 
-                  {currentUser.role === 'admin' && (
+                  {canManageDocuments(currentUser) && (
                     <button
                       onClick={() => handleDeleteDocument(doc)}
                       className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
@@ -614,7 +632,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                   <label className="block font-semibold text-slate-700 mb-1">Autor / Órgão Emissor *</label>
                   <input
                     name="author"
-                    defaultValue="Secretaria-Geral da AE"
+                    defaultValue={
+                      isDepartmentSecretary(currentUser)
+                        ? `Secretaria · ${currentUser.department || 'Departamento'}`
+                        : isDepartmentLeader(currentUser)
+                        ? `Coordenação · ${currentUser.department || 'Departamento'}`
+                        : 'Secretaria-Geral da AE'
+                    }
                     required
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />

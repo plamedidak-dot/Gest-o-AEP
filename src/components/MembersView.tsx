@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   PlusCircle,
   AlertTriangle,
-  FolderPlus
+  FolderPlus,
+  Sparkles
 } from 'lucide-react';
 import { Member, QuotaPayment, UserProfile, AssociationSettings, DepartmentType, DepartmentItem } from '../types';
 import { storage } from '../services/storage';
@@ -91,6 +92,54 @@ export const MembersView: React.FC<MembersViewProps> = ({
   // Form Department & Role state
   const [selectedDept, setSelectedDept] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('');
+
+  // Controlled Form Inputs for Member Registration & BI Auto-Population
+  const [biInput, setBiInput] = useState<string>('');
+  const [fullNameInput, setFullNameInput] = useState<string>('');
+  const [studentNumberInput, setStudentNumberInput] = useState<string>('');
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [phoneInput, setPhoneInput] = useState<string>('');
+  const [classLevelInput, setClassLevelInput] = useState<string>('10ª Classe');
+  const [turmaInput, setTurmaInput] = useState<string>('Turma A');
+  const [courseInput, setCourseInput] = useState<string>('Ciências Físicas e Biológicas');
+  const [turnoInput, setTurnoInput] = useState<'Manhã' | 'Tarde' | 'Noite'>('Manhã');
+  const [biMatchFeedback, setBiMatchFeedback] = useState<string | null>(null);
+  const [isBiAutoFilled, setIsBiAutoFilled] = useState<boolean>(false);
+
+  // Cached sample students from registry for 1-click test suggestions
+  const sampleRegistryStudents = useMemo(() => storage.getStudentsRegistry(), []);
+
+  // Automatic lookup from B.I. Number
+  const handleBiLookup = (rawBi: string) => {
+    const clean = rawBi.trim();
+    setBiInput(clean);
+    if (!clean) {
+      setBiMatchFeedback(null);
+      setIsBiAutoFilled(false);
+      return;
+    }
+    const found = storage.findStudentByBI(clean);
+    if (found) {
+      setFullNameInput(found.fullName);
+      setStudentNumberInput(found.studentNumber);
+      setEmailInput(found.email || '');
+      setPhoneInput(found.phone || '');
+      setClassLevelInput(found.classLevel || '10ª Classe');
+      setTurmaInput(found.turma || 'Turma A');
+      setCourseInput(found.course || 'Ciências Físicas e Biológicas');
+      setTurnoInput(found.turno || 'Manhã');
+      setBiMatchFeedback(`✓ Dados do Aluno Preenchidos Automaticamente: ${found.fullName} (${found.studentNumber})`);
+      setIsBiAutoFilled(true);
+      setFormError(null);
+    } else {
+      if (clean.length >= 8) {
+        setBiMatchFeedback(`ℹ️ Novo B.I. (${clean.toUpperCase()}) — insira os dados do aluno. Ficará registado para futuras consultas.`);
+      } else {
+        setBiMatchFeedback(null);
+      }
+      setIsBiAutoFilled(false);
+    }
+  };
 
   // Filter members strictly according to user permissions:
   // Central admin: all members.
@@ -173,6 +222,7 @@ export const MembersView: React.FC<MembersViewProps> = ({
       const matchesSearch =
         m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.studentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.biNumber && m.biNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (m.memberNumber && m.memberNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (m.accessCode && m.accessCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (m.classLevel && m.classLevel.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -192,10 +242,11 @@ export const MembersView: React.FC<MembersViewProps> = ({
 
   // Export CSV
   const handleExportCsv = () => {
-    const headers = ['Nº Sócio', 'Código de Acesso', 'Nº Processo', 'Nome Completo', 'Classe', 'Turma', 'Turno', 'Departamento', 'Cargo Escolar', 'Email', 'Telefone', 'Estado'];
+    const headers = ['Nº Sócio', 'Código de Acesso', 'B.I.', 'Nº Processo', 'Nome Completo', 'Classe', 'Turma', 'Turno', 'Departamento', 'Cargo Escolar', 'Email', 'Telefone', 'Estado'];
     const rows = filteredMembers.map(m => [
       m.memberNumber || '—',
       m.accessCode || '—',
+      m.biNumber || '—',
       m.studentNumber,
       m.fullName,
       m.classLevel || '—',
@@ -269,17 +320,28 @@ export const MembersView: React.FC<MembersViewProps> = ({
     setFormError(null);
 
     const fd = new FormData(e.currentTarget);
-    const fullName = (fd.get('fullName') as string || '').trim();
-    const studentNumber = (fd.get('studentNumber') as string || '').trim();
-    const email = fd.get('email') as string;
-    const phone = fd.get('phone') as string;
-    const classLevel = fd.get('classLevel') as string;
-    const turma = fd.get('turma') as string;
-    const course = fd.get('course') as string;
-    const turno = fd.get('turno') as 'Manhã' | 'Tarde' | 'Noite';
-    const department = (fd.get('department') as string || selectedDept || '').trim();
-    const departmentRole = (fd.get('departmentRole') as string || selectedRole || '').trim();
-    const notes = fd.get('notes') as string;
+    const biNumber = biInput.trim().toUpperCase();
+    const fullName = fullNameInput.trim();
+    const studentNumber = studentNumberInput.trim().toUpperCase();
+    const email = emailInput.trim();
+    const phone = phoneInput.trim();
+    const classLevel = classLevelInput;
+    const turma = turmaInput.trim();
+    const course = courseInput.trim();
+    const turno = turnoInput;
+    const department = (selectedDept || (fd.get('department') as string) || '').trim();
+    const departmentRole = (selectedRole || (fd.get('departmentRole') as string) || '').trim();
+    const notes = (fd.get('notes') as string) || '';
+
+    if (!fullName) {
+      setFormError('Por favor, introduza o Nome Completo do aluno ou consulte o número do B.I. para preenchimento automático.');
+      return;
+    }
+
+    if (!studentNumber) {
+      setFormError('Por favor, introduza o Nº de Processo Escolar do aluno.');
+      return;
+    }
 
     if (!department) {
       setFormError('Por favor, selecione ou crie um departamento para o membro.');
@@ -313,6 +375,7 @@ export const MembersView: React.FC<MembersViewProps> = ({
 
     if (editingMember) {
       storage.updateMember(editingMember.id, {
+        biNumber: biNumber || undefined,
         fullName,
         studentNumber,
         email,
@@ -330,6 +393,7 @@ export const MembersView: React.FC<MembersViewProps> = ({
       setEditingMember(null);
     } else {
       const created = storage.addMember({
+        biNumber: biNumber || undefined,
         fullName,
         studentNumber,
         email,
@@ -375,10 +439,32 @@ export const MembersView: React.FC<MembersViewProps> = ({
     setInlineDeptName('');
     if (member) {
       setEditingMember(member);
+      setBiInput(member.biNumber || '');
+      setFullNameInput(member.fullName || '');
+      setStudentNumberInput(member.studentNumber || '');
+      setEmailInput(member.email || '');
+      setPhoneInput(member.phone || '');
+      setClassLevelInput(member.classLevel || '10ª Classe');
+      setTurmaInput(member.turma || 'Turma A');
+      setCourseInput(member.course || 'Ciências Físicas e Biológicas');
+      setTurnoInput(member.turno || 'Manhã');
+      setBiMatchFeedback(member.biNumber ? `B.I. Associado: ${member.biNumber}` : null);
+      setIsBiAutoFilled(false);
       setSelectedDept(member.department || (allDepartmentNames[0] || ''));
       setSelectedRole(member.departmentRole || '');
     } else {
       setEditingMember(null);
+      setBiInput('');
+      setFullNameInput('');
+      setStudentNumberInput('');
+      setEmailInput('');
+      setPhoneInput('');
+      setClassLevelInput('10ª Classe');
+      setTurmaInput('Turma A');
+      setCourseInput('Ciências Físicas e Biológicas');
+      setTurnoInput('Manhã');
+      setBiMatchFeedback(null);
+      setIsBiAutoFilled(false);
       const defaultDept = (!isGlobalAdmin(currentUser) && currentUser.department)
         ? currentUser.department
         : (allDepartmentNames[0] || '');
@@ -574,7 +660,12 @@ export const MembersView: React.FC<MembersViewProps> = ({
                   </td>
 
                   <td className="py-3.5 px-4 font-mono font-bold text-slate-800 tabular-nums">
-                    {member.studentNumber}
+                    <div>{member.studentNumber}</div>
+                    {member.biNumber && (
+                      <div className="text-[10px] font-normal font-mono text-indigo-700 bg-indigo-50/90 px-1.5 py-0.2 rounded border border-indigo-200 inline-block mt-0.5" title={`Bilhete de Identidade: ${member.biNumber}`}>
+                        B.I. {member.biNumber}
+                      </div>
+                    )}
                   </td>
 
                   <td className="py-3.5 px-4">
@@ -687,6 +778,11 @@ export const MembersView: React.FC<MembersViewProps> = ({
                 <div>
                   <span className="text-[10px] text-slate-400 block font-medium">Nº Processo</span>
                   <span className="font-bold font-mono text-slate-800">{member.studentNumber}</span>
+                  {member.biNumber && (
+                    <span className="text-[10px] text-indigo-700 font-mono block mt-0.5 font-semibold">
+                      B.I. {member.biNumber}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block font-medium">Classe / Turno</span>
@@ -844,6 +940,11 @@ export const MembersView: React.FC<MembersViewProps> = ({
                       <div>
                         <span className="text-[9px] uppercase text-slate-400 block">Nº Processo</span>
                         <span className="font-mono font-bold text-indigo-300">{selectedMemberForCard.studentNumber}</span>
+                        {selectedMemberForCard.biNumber && (
+                          <span className="text-[9px] font-mono text-slate-300 block">
+                            B.I. {selectedMemberForCard.biNumber}
+                          </span>
+                        )}
                       </div>
                       <div>
                         <span className="text-[9px] uppercase text-slate-400 block">Classe / Turno</span>
@@ -921,25 +1022,125 @@ export const MembersView: React.FC<MembersViewProps> = ({
                 </div>
               )}
 
+              {/* B.I. Number Search & Auto-Population Box */}
+              <div className={`p-4 rounded-2xl border transition-all duration-200 ${
+                isBiAutoFilled 
+                  ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-400/20 shadow-xs' 
+                  : 'bg-gradient-to-r from-indigo-50/90 via-purple-50/40 to-slate-50 border-indigo-200/80'
+              }`}>
+                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                  <label className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-indigo-600" />
+                    <span>Número do Bilhete de Identidade (B.I.)</span>
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded-full">
+                      Preenchimento Automático
+                    </span>
+                  </label>
+                  {isBiAutoFilled && (
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 animate-in fade-in duration-150">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      Dados do Aluno Preenchidos
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-slate-500 mb-2.5">
+                  Coloque apenas o número do B.I. do aluno para carregar automaticamente o Nome, Nº de Processo, Turma, Turno, Classe e Contactos.
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      name="biNumber"
+                      value={biInput}
+                      onChange={(e) => handleBiLookup(e.target.value)}
+                      placeholder="Ex: 007842195LA042"
+                      className="w-full uppercase font-mono font-bold text-xs pl-3 pr-8 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                    />
+                    {biInput && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBiInput('');
+                          setBiMatchFeedback(null);
+                          setIsBiAutoFilled(false);
+                        }}
+                        className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                        title="Limpar B.I."
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleBiLookup(biInput)}
+                    className="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Consultar B.I.</span>
+                  </button>
+                </div>
+
+                {/* Feedback message */}
+                {biMatchFeedback && (
+                  <div className={`mt-2.5 p-2 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 ${
+                    isBiAutoFilled ? 'bg-emerald-100/80 text-emerald-900 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}>
+                    {isBiAutoFilled ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
+                    <span>{biMatchFeedback}</span>
+                  </div>
+                )}
+
+                {/* Quick Sample B.I.s buttons */}
+                <div className="pt-2.5 mt-2.5 border-t border-slate-200/70 flex items-center gap-1.5 flex-wrap text-[11px]">
+                  <span className="text-slate-500 font-medium text-[10px]">Testar com B.I. da escola:</span>
+                  {sampleRegistryStudents.slice(0, 4).map((st) => (
+                    <button
+                      key={st.biNumber}
+                      type="button"
+                      onClick={() => handleBiLookup(st.biNumber)}
+                      className="px-2 py-0.5 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-800 font-mono text-[10px] font-bold shadow-2xs transition-colors"
+                      title={`${st.fullName} (${st.studentNumber}) - ${st.course}`}
+                    >
+                      {st.biNumber}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Nome Completo do Aluno *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Nome Completo do Aluno *</label>
+                    {isBiAutoFilled && (
+                      <span className="text-[10px] text-emerald-700 font-bold">Auto</span>
+                    )}
+                  </div>
                   <input
                     name="fullName"
-                    defaultValue={editingMember?.fullName || ''}
+                    value={fullNameInput}
+                    onChange={(e) => setFullNameInput(e.target.value)}
                     required
                     placeholder="Ex: Manuel António Domingos"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Nº de Processo Escolar *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Nº de Processo Escolar *</label>
+                    {isBiAutoFilled && (
+                      <span className="text-[10px] text-emerald-700 font-bold">Auto</span>
+                    )}
+                  </div>
                   <input
                     name="studentNumber"
-                    defaultValue={editingMember?.studentNumber || ''}
+                    value={studentNumberInput}
+                    onChange={(e) => setStudentNumberInput(e.target.value)}
                     required
                     placeholder="Ex: PROC-1042"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono bg-white"
                   />
                 </div>
               </div>
@@ -1110,10 +1311,14 @@ export const MembersView: React.FC<MembersViewProps> = ({
               {/* School Class, Turma, Turno - 1 coluna em mobile, 3 colunas em ecrãs maiores */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Classe *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Classe *</label>
+                    {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                  </div>
                   <select
                     name="classLevel"
-                    defaultValue={editingMember?.classLevel || '10ª Classe'}
+                    value={classLevelInput}
+                    onChange={(e) => setClassLevelInput(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   >
                     <option value="12ª Classe">12ª Classe</option>
@@ -1126,20 +1331,28 @@ export const MembersView: React.FC<MembersViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Turma</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Turma</label>
+                    {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                  </div>
                   <input
                     name="turma"
-                    defaultValue={editingMember?.turma || 'Turma A'}
+                    value={turmaInput}
+                    onChange={(e) => setTurmaInput(e.target.value)}
                     placeholder="Ex: Turma A"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Turno *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Turno *</label>
+                    {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                  </div>
                   <select
                     name="turno"
-                    defaultValue={editingMember?.turno || 'Manhã'}
+                    value={turnoInput}
+                    onChange={(e) => setTurnoInput(e.target.value as any)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   >
                     <option value="Manhã">Manhã</option>
@@ -1151,33 +1364,45 @@ export const MembersView: React.FC<MembersViewProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Curso / Área de Estudo</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Curso / Área de Estudo</label>
+                    {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                  </div>
                   <input
                     name="course"
-                    defaultValue={editingMember?.course || 'Ciências Físicas e Biológicas'}
+                    value={courseInput}
+                    onChange={(e) => setCourseInput(e.target.value)}
                     placeholder="Ex: CFB, CEJ, Informática..."
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Telefone / WhatsApp</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Telefone / WhatsApp</label>
+                    {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                  </div>
                   <input
                     name="phone"
-                    defaultValue={editingMember?.phone || ''}
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
                     placeholder="+244 9xx xxx xxx"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Email</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-semibold text-slate-700">Email</label>
+                  {isBiAutoFilled && <span className="text-[10px] text-emerald-700 font-bold">Auto</span>}
+                </div>
                 <input
                   name="email"
                   type="email"
-                  defaultValue={editingMember?.email || ''}
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="estudante@escola.ao"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 />
               </div>
 

@@ -10,7 +10,8 @@ import {
   UserRole,
   AdminRole,
   DepartmentType,
-  DepartmentItem
+  DepartmentItem,
+  SchoolStudentRegistryItem
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -24,6 +25,7 @@ const STORAGE_KEYS = {
   AUTH_USER: 'ae_escola_current_user_v2',
   USER_PROFILES: 'ae_escola_user_profiles_v2',
   DEPARTMENTS: 'ae_escola_departments_v2',
+  STUDENTS_REGISTRY: 'ae_escola_student_registry_v2',
 };
 
 // Start clean with empty departments as requested by the user
@@ -302,7 +304,236 @@ export const SAMPLE_SCHOOL_MEMBERS: Member[] = [
   },
 ];
 
+export const INITIAL_STUDENTS_REGISTRY: SchoolStudentRegistryItem[] = [
+  {
+    biNumber: '007842195LA042',
+    fullName: 'Manuel António Domingos',
+    studentNumber: 'PROC-1042',
+    classLevel: '12ª Classe',
+    turma: 'Turma A',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Manhã',
+    email: 'manuel.domingos@escola.ao',
+    phone: '+244 923 111 222',
+    gender: 'M',
+    birthDate: '2008-05-14',
+  },
+  {
+    biNumber: '008914562LA054',
+    fullName: 'Esperança Teresa de Oliveira',
+    studentNumber: 'PROC-1088',
+    classLevel: '11ª Classe',
+    turma: 'Turma B',
+    course: 'Ciências Económicas e Jurídicas',
+    turno: 'Manhã',
+    email: 'esperanca.oliveira@escola.ao',
+    phone: '+244 924 333 444',
+    gender: 'F',
+    birthDate: '2009-02-20',
+  },
+  {
+    biNumber: '006321980BE021',
+    fullName: 'Nzambote Pedro',
+    studentNumber: 'PROC-1827',
+    classLevel: '10ª Classe',
+    turma: 'Turma C',
+    course: 'Informática de Gestão',
+    turno: 'Tarde',
+    email: 'nzambote.pedro@escola.ao',
+    phone: '+244 925 555 666',
+    gender: 'M',
+    birthDate: '2010-09-12',
+  },
+  {
+    biNumber: '009124873UE012',
+    fullName: 'Gabriel Mabiala',
+    studentNumber: 'PROC-4890',
+    classLevel: '12ª Classe',
+    turma: 'Turma A',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Manhã',
+    email: 'gabriel.mabiala@escola.ao',
+    phone: '+244 926 777 888',
+    gender: 'M',
+    birthDate: '2008-11-03',
+  },
+  {
+    biNumber: '005432198LA033',
+    fullName: 'Samara Sangue',
+    studentNumber: 'PROC-2033',
+    classLevel: '12ª Classe',
+    turma: 'Turma B',
+    course: 'Ciências Económicas e Jurídicas',
+    turno: 'Manhã',
+    email: 'samara.sangue@escola.ao',
+    phone: '+244 927 999 000',
+    gender: 'F',
+    birthDate: '2008-07-28',
+  },
+  {
+    biNumber: '004312890HA044',
+    fullName: 'João Mbuta',
+    studentNumber: 'PROC-3014',
+    classLevel: '11ª Classe',
+    turma: 'Turma A',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Tarde',
+    email: 'joao.mbuta@escola.ao',
+    phone: '+244 928 222 333',
+    gender: 'M',
+    birthDate: '2009-04-18',
+  },
+  {
+    biNumber: '008745210LA042',
+    fullName: 'Helena de Fátima',
+    studentNumber: 'PROC-5460',
+    classLevel: '12ª Classe',
+    turma: 'Turma C',
+    course: 'Gestão Empresarial',
+    turno: 'Manhã',
+    email: 'helena.fatima@escola.ao',
+    phone: '+244 929 444 555',
+    gender: 'F',
+    birthDate: '2008-03-09',
+  },
+  {
+    biNumber: '007123984KS019',
+    fullName: 'Bernardo Afonso Sebastião',
+    studentNumber: 'PROC-2190',
+    classLevel: '10ª Classe',
+    turma: 'Turma B',
+    course: 'Informática de Gestão',
+    turno: 'Manhã',
+    email: 'bernardo.sebastiao@escola.ao',
+    phone: '+244 930 111 444',
+    gender: 'M',
+    birthDate: '2010-06-25',
+  },
+  {
+    biNumber: '006541298LN027',
+    fullName: 'Cláudia Domingas Nguengue',
+    studentNumber: 'PROC-3204',
+    classLevel: '11ª Classe',
+    turma: 'Turma A',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Manhã',
+    email: 'claudia.nguengue@escola.ao',
+    phone: '+244 931 555 777',
+    gender: 'F',
+    birthDate: '2009-10-15',
+  },
+  {
+    biNumber: '009874123CA039',
+    fullName: 'Paulo Kiala Muondo',
+    studentNumber: 'PROC-4112',
+    classLevel: '12ª Classe',
+    turma: 'Turma C',
+    course: 'Construção Civil',
+    turno: 'Tarde',
+    email: 'paulo.muondo@escola.ao',
+    phone: '+244 932 888 111',
+    gender: 'M',
+    birthDate: '2008-01-30',
+  },
+  {
+    biNumber: '005892147UE055',
+    fullName: 'Ana Maria Pascoal',
+    studentNumber: 'PROC-1945',
+    classLevel: '10ª Classe',
+    turma: 'Turma A',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Manhã',
+    email: 'ana.pascoal@escola.ao',
+    phone: '+244 933 222 666',
+    gender: 'F',
+    birthDate: '2010-12-05',
+  },
+  {
+    biNumber: '007412589LA088',
+    fullName: 'Daniel Francisco Gouveia',
+    studentNumber: 'PROC-2876',
+    classLevel: '11ª Classe',
+    turma: 'Turma C',
+    course: 'Ciências Económicas e Jurídicas',
+    turno: 'Noite',
+    email: 'daniel.gouveia@escola.ao',
+    phone: '+244 934 999 333',
+    gender: 'M',
+    birthDate: '2009-08-11',
+  },
+  {
+    biNumber: '008321456BE062',
+    fullName: 'Rosa Kátia Simão',
+    studentNumber: 'PROC-3980',
+    classLevel: '10ª Classe',
+    turma: 'Turma D',
+    course: 'Informática de Gestão',
+    turno: 'Tarde',
+    email: 'rosa.simao@escola.ao',
+    phone: '+244 935 444 888',
+    gender: 'F',
+    birthDate: '2010-04-02',
+  },
+  {
+    biNumber: '006987412HA071',
+    fullName: 'Lucas Fernando Cassoma',
+    studentNumber: 'PROC-5021',
+    classLevel: '12ª Classe',
+    turma: 'Turma B',
+    course: 'Ciências Físicas e Biológicas',
+    turno: 'Manhã',
+    email: 'lucas.cassoma@escola.ao',
+    phone: '+244 936 777 999',
+    gender: 'M',
+    birthDate: '2008-09-19',
+  },
+];
+
 class StorageService {
+  getStudentsRegistry(): SchoolStudentRegistryItem[] {
+    const data = localStorage.getItem(STORAGE_KEYS.STUDENTS_REGISTRY);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.STUDENTS_REGISTRY, JSON.stringify(INITIAL_STUDENTS_REGISTRY));
+      return INITIAL_STUDENTS_REGISTRY;
+    }
+    try {
+      const parsed: SchoolStudentRegistryItem[] = JSON.parse(data);
+      let updated = false;
+      for (const item of INITIAL_STUDENTS_REGISTRY) {
+        if (!parsed.some(p => p.biNumber.toUpperCase() === item.biNumber.toUpperCase())) {
+          parsed.push(item);
+          updated = true;
+        }
+      }
+      if (updated) {
+        localStorage.setItem(STORAGE_KEYS.STUDENTS_REGISTRY, JSON.stringify(parsed));
+      }
+      return parsed;
+    } catch {
+      return INITIAL_STUDENTS_REGISTRY;
+    }
+  }
+
+  findStudentByBI(rawBi: string): SchoolStudentRegistryItem | undefined {
+    if (!rawBi) return undefined;
+    const clean = rawBi.trim().toUpperCase().replace(/[\s\-_.]/g, '');
+    if (!clean) return undefined;
+    const registry = this.getStudentsRegistry();
+    return registry.find(s => s.biNumber.trim().toUpperCase().replace(/[\s\-_.]/g, '') === clean);
+  }
+
+  saveStudentToRegistry(student: SchoolStudentRegistryItem): void {
+    const registry = this.getStudentsRegistry();
+    const cleanBi = student.biNumber.trim().toUpperCase().replace(/[\s\-_.]/g, '');
+    const idx = registry.findIndex(s => s.biNumber.trim().toUpperCase().replace(/[\s\-_.]/g, '') === cleanBi);
+    if (idx >= 0) {
+      registry[idx] = { ...registry[idx], ...student };
+    } else {
+      registry.unshift(student);
+    }
+    localStorage.setItem(STORAGE_KEYS.STUDENTS_REGISTRY, JSON.stringify(registry));
+  }
+
   getSettings(): AssociationSettings {
     const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!data) {
@@ -424,6 +655,21 @@ class StorageService {
 
     members.unshift(newMember);
     this.saveMembers(members);
+
+    // If student has a BI number, register/update into central student registry
+    if (newMember.biNumber) {
+      this.saveStudentToRegistry({
+        biNumber: newMember.biNumber,
+        fullName: newMember.fullName,
+        studentNumber: newMember.studentNumber,
+        classLevel: newMember.classLevel,
+        turma: newMember.turma,
+        course: newMember.course,
+        turno: newMember.turno,
+        email: newMember.email,
+        phone: newMember.phone,
+      });
+    }
 
     // Register user profile for member login
     this.saveMemberUserProfile(newMember);
@@ -621,6 +867,20 @@ class StorageService {
 
     // Synchronize member user profile and admin rights
     this.saveMemberUserProfile(members[index]);
+
+    if (members[index].biNumber) {
+      this.saveStudentToRegistry({
+        biNumber: members[index].biNumber!,
+        fullName: members[index].fullName,
+        studentNumber: members[index].studentNumber,
+        classLevel: members[index].classLevel,
+        turma: members[index].turma,
+        course: members[index].course,
+        turno: members[index].turno,
+        email: members[index].email,
+        phone: members[index].phone,
+      });
+    }
 
     if (updates.fullName) {
       const quotas = this.getQuotas().map(q => q.memberId === id ? { ...q, memberName: updates.fullName! } : q);

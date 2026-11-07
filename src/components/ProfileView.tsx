@@ -337,11 +337,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
                 Dados Académicos Oficiais (Secretaria da AE)
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                 <div>
                   <span className="text-slate-400 text-[10px] block">Nº de Estudante</span>
                   <span className="font-bold text-slate-900 font-mono">{linkedMember.studentNumber}</span>
                 </div>
+                {linkedMember.biNumber && (
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Nº de B.I.</span>
+                    <span className="font-bold text-indigo-700 font-mono">{linkedMember.biNumber}</span>
+                  </div>
+                )}
                 <div>
                   <span className="text-slate-400 text-[10px] block">Classe / Turno</span>
                   <span className="font-semibold text-slate-900">{linkedMember.classLevel} ({linkedMember.turno})</span>

@@ -44,6 +44,7 @@ export interface Member {
   memberNumber: string; // Nº de Associado (ex: SOC-001)
   accessCode: string; // Código de Acesso único (ex: AE-PROC1042)
   password?: string; // Senha de acesso gerada automaticamente
+  biNumber?: string; // Nº do Bilhete de Identidade (ex: 007842195LA042)
   studentNumber: string; // Nº de Processo Escolar
   fullName: string;
   email: string;
@@ -60,6 +61,20 @@ export interface Member {
   joinDate: string;
   idCardIssued: boolean;
   notes?: string;
+}
+
+export interface SchoolStudentRegistryItem {
+  biNumber: string; // Nº do Bilhete de Identidade (ex: 007842195LA042)
+  fullName: string;
+  studentNumber: string; // Nº de Processo Escolar
+  classLevel: string; // 10ª Classe, 11ª Classe, 12ª Classe, etc.
+  turma: string; // Turma A, B, C
+  course: string; // Ciências Físicas e Biológicas, Ciências Económicas, etc.
+  turno: 'Manhã' | 'Tarde' | 'Noite';
+  email: string;
+  phone: string;
+  birthDate?: string;
+  gender?: 'M' | 'F';
 }
 
 export type PaymentMethod = 'numerario' | 'multicaixa' | 'transferencia' | 'unitel_money' | 'outro';

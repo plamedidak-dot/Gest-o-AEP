@@ -44,6 +44,7 @@ ${settings.name} (${settings.institution})
 Mandato: ${settings.academicYear}
 ----------------------------------------
 Nome: ${member.fullName}
+B.I. (Bilhete de Identidade): ${member.biNumber || 'Não registado'}
 Nº de Processo: ${member.studentNumber}
 Classe/Turno: ${member.classLevel} (${member.turno})
 Departamento: ${member.department} (${member.departmentRole})
@@ -158,6 +159,12 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
               <span className="text-slate-500">Nome do Aluno:</span>
               <span className="font-bold text-slate-900">{member.fullName}</span>
             </div>
+            {member.biNumber && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Nº de B.I. (Identidade):</span>
+                <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">{member.biNumber}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Nº de Processo Escolar:</span>
               <span className="font-mono font-bold text-slate-800">{member.studentNumber}</span>

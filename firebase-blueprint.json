@@ -1,0 +1,176 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Registered member of the school student association",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberNumber": { "type": "string" },
+        "accessCode": { "type": "string" },
+        "password": { "type": "string" },
+        "biNumber": { "type": "string" },
+        "studentNumber": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "classLevel": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "turma": { "type": "string" },
+        "course": { "type": "string" },
+        "turno": { "type": "string" },
+        "department": { "type": "string" },
+        "departmentRole": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "joinDate": { "type": "string" },
+        "idCardIssued": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "memberNumber", "fullName", "phone", "department", "departmentRole", "status"]
+    },
+    "DepartmentItem": {
+      "title": "DepartmentItem",
+      "description": "Department within the association",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "isAdministrative": { "type": "boolean" }
+      },
+      "required": ["id", "name"]
+    },
+    "QuotaPayment": {
+      "title": "QuotaPayment",
+      "description": "Weekly quota payment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "studentNumber": { "type": "string" },
+        "department": { "type": "string" },
+        "period": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "status": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "paymentDate": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "registeredBy": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "memberId", "memberName", "amount", "status"]
+    },
+    "AssociationEvent": {
+      "title": "AssociationEvent",
+      "description": "Association meeting, general assembly or school event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "isGeneralAssembly": { "type": "boolean" },
+        "minQuorumPercent": { "type": "number" },
+        "maxCapacity": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "title", "date", "status"]
+    },
+    "EventAttendance": {
+      "title": "EventAttendance",
+      "description": "Attendance record for an event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventId": { "type": "string" },
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "studentNumber": { "type": "string" },
+        "department": { "type": "string" },
+        "status": { "type": "string" },
+        "checkInTime": { "type": "string" },
+        "justification": { "type": "string" }
+      },
+      "required": ["id", "eventId", "memberId", "status"]
+    },
+    "AssociationDocument": {
+      "title": "AssociationDocument",
+      "description": "Official documents, statutes, minutes, declarations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "author": { "type": "string" },
+        "description": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileSize": { "type": "string" },
+        "officialNumber": { "type": "string" },
+        "contentBody": { "type": "string" },
+        "pdfDataUrl": { "type": "string" },
+        "fileName": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "date"]
+    },
+    "AssociationSettings": {
+      "title": "AssociationSettings",
+      "description": "Global school association configuration and leadership info",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "acronym": { "type": "string" },
+        "institution": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "currency": { "type": "string" },
+        "quotaAmount": { "type": "number" },
+        "quotaCadence": { "type": "string" },
+        "presidentName": { "type": "string" },
+        "vicePresidentName": { "type": "string" },
+        "secretaryName": { "type": "string" },
+        "treasurerName": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "address": { "type": "string" },
+        "logoUrl": { "type": "string" }
+      },
+      "required": ["name", "acronym", "institution"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Stores association members"
+    },
+    "/departments/{departmentId}": {
+      "schema": "DepartmentItem",
+      "description": "Stores school association departments"
+    },
+    "/quotas/{quotaId}": {
+      "schema": "QuotaPayment",
+      "description": "Stores quota payment records"
+    },
+    "/events/{eventId}": {
+      "schema": "AssociationEvent",
+      "description": "Stores association events and general assemblies"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "EventAttendance",
+      "description": "Stores member attendance check-ins"
+    },
+    "/documents/{documentId}": {
+      "schema": "AssociationDocument",
+      "description": "Stores official documents and minutes"
+    },
+    "/settings/{settingId}": {
+      "schema": "AssociationSettings",
+      "description": "Stores association configuration document"
+    }
+  }
+}

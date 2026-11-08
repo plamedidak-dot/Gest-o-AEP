@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Members Collection
+    match /members/{memberId} {
+      allow read: if true;
+      allow create, update: if isValidId(memberId) &&
+        incoming().fullName is string && incoming().fullName.size() > 0 && incoming().fullName.size() <= 200 &&
+        incoming().phone is string && incoming().phone.size() <= 40;
+      allow delete: if isValidId(memberId);
+    }
+
+    // Departments Collection
+    match /departments/{departmentId} {
+      allow read: if true;
+      allow create, update: if isValidId(departmentId) &&
+        incoming().name is string && incoming().name.size() > 0 && incoming().name.size() <= 200;
+      allow delete: if isValidId(departmentId);
+    }
+
+    // Quotas Collection
+    match /quotas/{quotaId} {
+      allow read: if true;
+      allow create, update: if isValidId(quotaId) &&
+        incoming().memberId is string && incoming().amount is number;
+      allow delete: if isValidId(quotaId);
+    }
+
+    // Events Collection
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update: if isValidId(eventId) &&
+        incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 300;
+      allow delete: if isValidId(eventId);
+    }
+
+    // Attendance Collection
+    match /attendance/{attendanceId} {
+      allow read: if true;
+      allow create, update: if isValidId(attendanceId) &&
+        incoming().eventId is string && incoming().memberId is string;
+      allow delete: if isValidId(attendanceId);
+    }
+
+    // Documents Collection
+    match /documents/{documentId} {
+      allow read: if true;
+      allow create, update: if isValidId(documentId) &&
+        incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 300;
+      allow delete: if isValidId(documentId);
+    }
+
+    // Settings Collection
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if isValidId(settingId);
+      allow delete: if false;
+    }
+  }
+}

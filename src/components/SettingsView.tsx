@@ -14,7 +14,9 @@ import {
   Users,
   Database,
   Link as LinkIcon,
-  Check
+  Check,
+  Cloud,
+  RefreshCw
 } from 'lucide-react';
 import { AssociationSettings, UserProfile } from '../types';
 import { storage } from '../services/storage';
@@ -114,6 +116,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       }
     };
     reader.readAsText(file);
+  };
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+
+  const handleSyncToCloud = async () => {
+    setIsSyncingCloud(true);
+    try {
+      const res = await storage.syncAllToCloud();
+      if (res.success) {
+        setStatusFeedback({ message: `Base de dados na nuvem sincronizada com sucesso (${res.count} registos atualizados).` });
+      } else {
+        setStatusFeedback({ message: `Erro ao sincronizar: ${res.error || 'Verifique a ligação'}`, isError: true });
+      }
+    } catch (e: any) {
+      setStatusFeedback({ message: `Erro: ${e.message}`, isError: true });
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setStatusFeedback(null), 4000);
+    }
   };
 
   const handleClearAll = () => {
@@ -578,10 +599,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* ABA 4: Cópia de Segurança & Dados */}
         {activeTab === 'dados' && (
           <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6 shadow-sm text-xs">
+            {/* Cloud Database (Firebase Firestore) Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 border border-indigo-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                    <Cloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">Base de Dados na Nuvem (Firebase Firestore)</h4>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Conectada & Activa
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Sincronização em tempo real entre todos os computadores e telemóveis dos membros.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSyncToCloud}
+                  disabled={isSyncingCloud}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-sm shrink-0 self-start sm:self-auto cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingCloud ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingCloud ? 'A Sincronizar...' : 'Sincronizar Tudo com a Nuvem'}</span>
+                </button>
+              </div>
+
+              <div className="p-3 bg-white/80 rounded-xl border border-indigo-100 text-[11px] text-slate-600 space-y-1">
+                <p className="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  Como funciona o acesso de outros membros:
+                </p>
+                <p>
+                  Ao adicionar membros ou departamentos num dispositivo, estes são gravados instantaneamente na base de dados central. Quando outros estudantes acederem via <strong>https://gestaep.netlify.app/</strong> ou no telemóvel, os membros e dados estarão automaticamente disponíveis para acesso com o seu <strong>Número de Telefone</strong> e senha!
+                </p>
+              </div>
+            </div>
+
             <div>
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-2">
                 <Database className="w-4 h-4 text-indigo-600" />
-                <span>Gestão de Dados & Cópias de Segurança (Backup)</span>
+                <span>Gestão Local de Dados & Cópias de Segurança (Backup)</span>
               </h3>
               <p className="text-slate-500 leading-relaxed mb-4">
                 Descarregue ou restaure ficheiros de cópia de segurança em formato JSON para garantir a salvaguarda de todos os membros, documentos, quotas e presenças.
@@ -591,7 +655,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <button
                   type="button"
                   onClick={handleDownloadBackup}
-                  className="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 rounded-xl font-semibold flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 rounded-xl font-semibold flex items-center gap-2 transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-indigo-600" />
                   <span>Descarregar Backup Completo (JSON)</span>
@@ -612,7 +676,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={onLoadSampleData}
-                    className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-semibold flex items-center gap-2 transition-colors"
+                    className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-semibold flex items-center gap-2 transition-colors cursor-pointer"
                     title="Carregar estrutura de departamentos e alunos de teste"
                   >
                     <Sparkles className="w-4 h-4" />
@@ -623,7 +687,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-semibold flex items-center gap-2 transition-colors sm:ml-auto"
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-semibold flex items-center gap-2 transition-colors sm:ml-auto cursor-pointer"
                   title="Limpar todos os dados e deixar o sistema vazio"
                 >
                   <Trash2 className="w-4 h-4" />

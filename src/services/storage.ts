@@ -13,6 +13,21 @@ import {
   DepartmentItem,
   SchoolStudentRegistryItem
 } from '../types';
+import {
+  syncMemberToCloud,
+  deleteMemberFromCloud,
+  syncDepartmentToCloud,
+  deleteDepartmentFromCloud,
+  syncQuotaToCloud,
+  deleteQuotaFromCloud,
+  syncEventToCloud,
+  deleteEventFromCloud,
+  syncAttendanceToCloud,
+  syncDocumentToCloud,
+  deleteDocumentFromCloud,
+  syncSettingsToCloud,
+  pushAllLocalDataToCloud
+} from './firestoreSync';
 
 const STORAGE_KEYS = {
   MEMBERS: 'ae_escola_members_v2',
@@ -550,6 +565,7 @@ class StorageService {
   saveSettings(settings: AssociationSettings): void {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
     this.notifyChange();
+    syncSettingsToCloud(settings);
   }
 
   getDepartments(): DepartmentItem[] {
@@ -583,12 +599,14 @@ class StorageService {
     };
     departments.push(newDept);
     this.saveDepartments(departments);
+    syncDepartmentToCloud(newDept);
     return newDept;
   }
 
   deleteDepartment(id: string): void {
     const departments = this.getDepartments().filter(d => d.id !== id);
     this.saveDepartments(departments);
+    deleteDepartmentFromCloud(id);
   }
 
   getMembers(): Member[] {
@@ -673,6 +691,9 @@ class StorageService {
 
     // Register user profile for member login
     this.saveMemberUserProfile(newMember);
+
+    // Sync to cloud database
+    syncMemberToCloud(newMember);
 
     return newMember;
   }
@@ -1080,12 +1101,15 @@ class StorageService {
       this.saveAttendance(attendances);
     }
 
+    syncMemberToCloud(members[index]);
+
     return members[index];
   }
 
   deleteMember(id: string): void {
     const members = this.getMembers().filter(m => m.id !== id);
     this.saveMembers(members);
+    deleteMemberFromCloud(id);
   }
 
   getQuotas(): QuotaPayment[] {
@@ -1114,6 +1138,7 @@ class StorageService {
     };
     quotas.unshift(newPayment);
     this.saveQuotas(quotas);
+    syncQuotaToCloud(newPayment);
     return newPayment;
   }
 
@@ -1123,12 +1148,14 @@ class StorageService {
     if (idx === -1) return null;
     quotas[idx] = { ...quotas[idx], ...updates };
     this.saveQuotas(quotas);
+    syncQuotaToCloud(quotas[idx]);
     return quotas[idx];
   }
 
   deleteQuota(id: string): void {
     const quotas = this.getQuotas().filter(q => q.id !== id);
     this.saveQuotas(quotas);
+    deleteQuotaFromCloud(id);
   }
 
   getEvents(): AssociationEvent[] {
@@ -1157,6 +1184,7 @@ class StorageService {
     };
     events.unshift(newEvent);
     this.saveEvents(events);
+    syncEventToCloud(newEvent);
     return newEvent;
   }
 
@@ -1166,6 +1194,7 @@ class StorageService {
     if (idx === -1) return null;
     events[idx] = { ...events[idx], ...updates };
     this.saveEvents(events);
+    syncEventToCloud(events[idx]);
     return events[idx];
   }
 
@@ -1174,6 +1203,7 @@ class StorageService {
     this.saveEvents(events);
     const attendance = this.getAttendance().filter(a => a.eventId !== id);
     this.saveAttendance(attendance);
+    deleteEventFromCloud(id);
   }
 
   getAttendance(): EventAttendance[] {
@@ -1208,6 +1238,7 @@ class StorageService {
         justification: record.justification,
       };
       this.saveAttendance(list);
+      syncAttendanceToCloud(list[existingIndex]);
       return list[existingIndex];
     } else {
       const newAttendance: EventAttendance = {
@@ -1217,6 +1248,7 @@ class StorageService {
       };
       list.push(newAttendance);
       this.saveAttendance(list);
+      syncAttendanceToCloud(newAttendance);
       return newAttendance;
     }
   }
@@ -1247,12 +1279,14 @@ class StorageService {
     };
     docs.unshift(newDoc);
     this.saveDocuments(docs);
+    syncDocumentToCloud(newDoc);
     return newDoc;
   }
 
   deleteDocument(id: string): void {
     const docs = this.getDocuments().filter(d => d.id !== id);
     this.saveDocuments(docs);
+    deleteDocumentFromCloud(id);
   }
 
   getNotifications(): AppNotification[] {
@@ -1473,6 +1507,18 @@ class StorageService {
     } catch {
       return false;
     }
+  }
+
+  async syncAllToCloud(): Promise<{ success: boolean; count: number; error?: string }> {
+    return pushAllLocalDataToCloud({
+      members: this.getMembers(),
+      departments: this.getDepartments(),
+      quotas: this.getQuotas(),
+      events: this.getEvents(),
+      attendance: this.getAttendance(),
+      documents: this.getDocuments(),
+      settings: this.getSettings(),
+    });
   }
 
   private notifyChange() {

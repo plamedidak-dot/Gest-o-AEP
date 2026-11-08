@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   User,
   CreditCard,
-  Menu
+  Menu,
+  Cloud
 } from 'lucide-react';
 import { AppNotification, UserProfile } from '../types';
 import { storage } from '../services/storage';
@@ -134,6 +135,16 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zone 3: Navigation contextual indicators & notifications */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Cloud database sync indicator */}
+        <div 
+          className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-[11px] font-semibold cursor-default"
+          title="Base de Dados na Nuvem Activa (Firebase Firestore): sincronização em tempo real entre todos os dispositivos"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <Cloud className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Nuvem Activa</span>
+        </div>
+
         {/* Mobile Search Button */}
         <button
           onClick={onOpenGlobalSearch}

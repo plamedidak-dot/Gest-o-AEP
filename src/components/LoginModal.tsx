@@ -87,21 +87,22 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
           <div>
             <label className="block font-bold text-slate-700 mb-1">
-              Código de Acesso ou Nº de Associado *
+              Número de Telefone *
             </label>
             <div className="relative">
               <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
+                type="tel"
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value)}
                 required
                 autoFocus
-                placeholder="Ex: AE-PRESIDENTE ou AE-PROC1042"
-                className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs uppercase font-semibold text-slate-900"
+                placeholder="Ex: 923 000 001 ou 9xx xxx xxx"
+                className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs font-semibold text-slate-900"
               />
             </div>
             <p className="text-[10px] text-slate-400 mt-1">
-              Introduza o código atribuído à sua conta ou processo escolar.
+              Introduza o número de telefone com o qual foi registado na Associação.
             </p>
           </div>
 

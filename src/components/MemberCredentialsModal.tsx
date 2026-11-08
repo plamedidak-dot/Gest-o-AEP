@@ -50,11 +50,11 @@ Classe/Turno: ${member.classLevel} (${member.turno})
 Departamento: ${member.department} (${member.departmentRole})
 
 DADOS PARA INÍCIO DE SESSÃO:
-• Nº de Associado: ${member.memberNumber}
-• Código de Acesso: ${member.accessCode}
+• Telefone de Acesso: ${member.phone}
 • Senha de Acesso: ${member.password || 'Definida na secretaria'}
+• Nº de Associado: ${member.memberNumber} (Código: ${member.accessCode})
 ----------------------------------------
-Acesse o portal da AE para consultar suas quotas e carteira digital.`;
+Acesse o portal da AE com o seu Telefone e Senha para consultar suas quotas e carteira digital.`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(credentialsText);
@@ -195,36 +195,27 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                <span className="text-[10px] uppercase tracking-wider text-indigo-300 block">
-                  Número de Associado
+                <span className="text-[10px] uppercase tracking-wider text-emerald-300 block font-bold">
+                  Telefone de Acesso (Login)
                 </span>
                 <span className="text-base font-black font-mono text-white tracking-wider">
-                  {member.memberNumber}
+                  {member.phone || '9xx xxx xxx'}
                 </span>
               </div>
 
               <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                <span className="text-[10px] uppercase tracking-wider text-indigo-300 block">
-                  Código de Acesso
+                <span className="text-[10px] uppercase tracking-wider text-amber-300 block font-bold">
+                  Senha de Acesso
                 </span>
                 <span className="text-base font-black font-mono text-amber-300 tracking-wider">
-                  {member.accessCode}
+                  {member.password || '123456'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white/15 p-3 rounded-xl border border-white/10 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-indigo-300 block">
-                  Senha Provisória
-                </span>
-                <span className="text-sm font-black font-mono text-emerald-300 tracking-wider">
-                  {member.password || 'Consulte a Direção'}
-                </span>
-              </div>
-              <div className="text-[10px] text-slate-300 text-right">
-                Pode alterar a senha no perfil
-              </div>
+            <div className="bg-white/10 p-2.5 rounded-xl border border-white/10 flex items-center justify-between text-[11px] font-mono text-slate-300">
+              <span>Nº Sócio: {member.memberNumber}</span>
+              <span>Cód: {member.accessCode}</span>
             </div>
 
             <div className="pt-1 flex items-center justify-between text-[11px] text-slate-300">
@@ -236,7 +227,7 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
               </div>
               <div className="bg-white p-1 rounded-lg shrink-0">
                 <QRCodeSvg
-                  value={`AE_LOGIN:${member.accessCode}:${member.memberNumber}`}
+                  value={`AE_LOGIN:${member.phone}:${member.accessCode}`}
                   size={48}
                 />
               </div>
@@ -244,7 +235,7 @@ Acesse o portal da AE para consultar suas quotas e carteira digital.`;
           </div>
 
           <p className="text-[11px] text-slate-500 text-center leading-relaxed">
-            Entregue esta ficha ao aluno. Com o <strong>Código de Acesso</strong> e <strong>Senha</strong>, o aluno poderá aceder ao portal da escola para visualizar as quotas pagas (500 Kz/semana) e sua carteira digital.
+            Entregue esta ficha ao aluno. Com o <strong>Número de Telefone</strong> e <strong>Senha</strong>, o aluno poderá aceder diretamente ao portal da escola para visualizar as quotas pagas (500 Kz/semana) e sua carteira digital.
           </p>
         </div>
 

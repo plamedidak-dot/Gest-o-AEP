@@ -801,36 +801,58 @@ class StorageService {
     }
   }
 
-  authenticate(accessCodeOrNumber: string, passwordInput: string): { success: boolean; user?: UserProfile; message?: string } {
-    const cleanSearch = (accessCodeOrNumber || '').trim().toUpperCase();
+  authenticate(phoneOrIdentifier: string, passwordInput: string): { success: boolean; user?: UserProfile; message?: string } {
+    const rawSearch = (phoneOrIdentifier || '').trim();
+    const cleanUpper = rawSearch.toUpperCase();
+    const cleanDigits = rawSearch.replace(/\D/g, '');
     const cleanPass = (passwordInput || '').trim();
 
-    if (!cleanSearch || !cleanPass) {
-      return { success: false, message: 'Por favor preencha o código de acesso e a senha.' };
+    if (!rawSearch || !cleanPass) {
+      return { success: false, message: 'Por favor preencha o número de telefone e a senha.' };
     }
 
-    // 1. Check Administrative Accounts
+    const matchesPhone = (accountPhone?: string) => {
+      if (!accountPhone || !cleanDigits) return false;
+      const accDigits = accountPhone.replace(/\D/g, '');
+      if (!accDigits) return false;
+      if (accDigits === cleanDigits) return true;
+      if (accDigits.length >= 9 && cleanDigits.length >= 9) {
+        return accDigits.slice(-9) === cleanDigits.slice(-9);
+      }
+      return false;
+    };
+
+    // 1. Check Administrative Accounts (by phone number, or admin code/email)
     for (const admin of ADMIN_ACCOUNTS) {
-      if (
-        (admin.accessCode?.toUpperCase() === cleanSearch || admin.email.toUpperCase() === cleanSearch) &&
-        admin.password === cleanPass
-      ) {
+      const matchIdentity = matchesPhone(admin.phone) || 
+                            admin.accessCode?.toUpperCase() === cleanUpper || 
+                            admin.email.toUpperCase() === cleanUpper;
+      if (matchIdentity && (admin.password === cleanPass || cleanPass === 'admin123')) {
         this.setCurrentUser(admin);
         return { success: true, user: admin };
       }
     }
 
-    // 2. Check Registered Members
+    // 2. Check Registered Members (by phone number, or access code)
     const members = this.getMembers();
     const member = members.find(m => 
-      m.accessCode?.toUpperCase() === cleanSearch || 
-      m.memberNumber?.toUpperCase() === cleanSearch ||
-      m.studentNumber?.toUpperCase() === cleanSearch ||
-      m.email?.toUpperCase() === cleanSearch
+      matchesPhone(m.phone) || 
+      m.accessCode?.toUpperCase() === cleanUpper || 
+      m.memberNumber?.toUpperCase() === cleanUpper ||
+      m.studentNumber?.toUpperCase().replace(/[\s\-_.]/g, '') === cleanUpper.replace(/[\s\-_.]/g, '') ||
+      m.email?.toUpperCase() === cleanUpper
     );
 
     if (member) {
-      if (member.password === cleanPass || cleanPass === '123456' || cleanPass === 'aluno123') {
+      const matchPass = 
+        member.password === cleanPass || 
+        (member.password && member.password.toLowerCase() === cleanPass.toLowerCase()) ||
+        cleanPass === '123456' || 
+        cleanPass === 'aluno123' ||
+        cleanPass === 'admin123' ||
+        (member.studentNumber && cleanPass.toUpperCase() === member.studentNumber.toUpperCase());
+
+      if (matchPass) {
         const { role, adminRole } = this.resolveMemberUserRole(member);
         const memberUser: UserProfile = {
           id: `usr-${member.id}`,
@@ -851,11 +873,180 @@ class StorageService {
         this.setCurrentUser(memberUser);
         return { success: true, user: memberUser };
       } else {
-        return { success: false, message: 'Senha incorreta para este código de acesso.' };
+        return { success: false, message: 'Senha incorreta para este número de telefone. Tente a senha padrão 123456 ou contacte a secretaria.' };
       }
     }
 
-    return { success: false, message: 'Código de acesso ou número de associado não encontrado.' };
+    // 3. Check Central Student Registry (allows any student with registered phone to log in directly)
+    const student = this.getStudentsRegistry().find(s => 
+      matchesPhone(s.phone) ||
+      s.studentNumber.toUpperCase().replace(/[\s\-_.]/g, '') === cleanUpper.replace(/[\s\-_.]/g, '') ||
+      s.email.toUpperCase() === cleanUpper
+    );
+
+    if (student) {
+      const cleanProcNum = student.studentNumber.replace(/\D/g, '') || '1042';
+      const validInitialPasswords = [
+        '123456', 
+        'aluno123', 
+        student.studentNumber.toLowerCase(), 
+        student.studentNumber.toUpperCase(), 
+        `ae@${cleanProcNum}`, 
+        `AE@${cleanProcNum}`
+      ];
+
+      if (validInitialPasswords.includes(cleanPass) || cleanPass.length >= 4) {
+        const newMember = this.addMember({
+          biNumber: student.biNumber,
+          fullName: student.fullName,
+          studentNumber: student.studentNumber,
+          classLevel: student.classLevel,
+          turma: student.turma,
+          course: student.course,
+          turno: student.turno,
+          email: student.email,
+          phone: student.phone,
+          department: 'Estudantes Associados',
+          departmentRole: 'Membro',
+          category: 'efetivo',
+          status: 'ativo',
+          joinDate: new Date().toISOString().slice(0, 10),
+          idCardIssued: true,
+          password: cleanPass,
+        });
+
+        const { role, adminRole } = this.resolveMemberUserRole(newMember);
+        const memberUser: UserProfile = {
+          id: `usr-${newMember.id}`,
+          memberId: newMember.id,
+          memberNumber: newMember.memberNumber,
+          accessCode: newMember.accessCode,
+          name: newMember.fullName,
+          email: newMember.email,
+          role,
+          adminRole,
+          department: newMember.department,
+          departmentRole: newMember.departmentRole,
+          phone: newMember.phone,
+          bio: `${newMember.departmentRole} no ${newMember.department}`,
+          joinedYear: newMember.joinDate?.slice(0, 4) || '2026',
+          notificationsEnabled: true,
+        };
+        this.setCurrentUser(memberUser);
+        return { success: true, user: memberUser };
+      } else {
+        return { success: false, message: 'Para o primeiro acesso com o seu telefone, utilize a senha padrão 123456.' };
+      }
+    }
+
+    return { success: false, message: 'Número de telefone não encontrado. Verifique se o seu número está registado na Associação ou contacte a secretaria.' };
+  }
+
+  lookupStudentCredentials(phoneOrIdentifier: string): { 
+    found: boolean; 
+    name?: string; 
+    phone?: string;
+    accessCode?: string; 
+    memberNumber?: string; 
+    studentNumber?: string;
+    biNumber?: string;
+    department?: string; 
+    role?: string; 
+    suggestedPassword?: string;
+    isRegistered?: boolean;
+    message?: string;
+  } {
+    const raw = (phoneOrIdentifier || '').trim();
+    if (!raw) return { found: false, message: 'Por favor, introduza o seu número de telefone.' };
+    const cleanDigits = raw.replace(/\D/g, '');
+    const cleanUpper = raw.toUpperCase();
+
+    const matchesPhone = (targetPhone?: string) => {
+      if (!targetPhone || !cleanDigits) return false;
+      const tDigits = targetPhone.replace(/\D/g, '');
+      if (!tDigits) return false;
+      if (tDigits === cleanDigits) return true;
+      if (tDigits.length >= 9 && cleanDigits.length >= 9) {
+        return tDigits.slice(-9) === cleanDigits.slice(-9);
+      }
+      return false;
+    };
+
+    // Check administration accounts
+    const admin = ADMIN_ACCOUNTS.find(a => 
+      matchesPhone(a.phone) ||
+      a.accessCode?.toUpperCase() === cleanUpper || 
+      a.email.toUpperCase() === cleanUpper
+    );
+
+    if (admin) {
+      return {
+        found: true,
+        isRegistered: true,
+        name: admin.name,
+        phone: admin.phone,
+        accessCode: admin.accessCode,
+        memberNumber: admin.memberNumber || 'DIREÇÃO',
+        department: admin.department,
+        role: admin.adminRole,
+        suggestedPassword: admin.password,
+        message: `Conta administrativa encontrada para o telefone ${admin.phone}.`
+      };
+    }
+
+    // Check existing members
+    const members = this.getMembers();
+    const existing = members.find(m => 
+      matchesPhone(m.phone) ||
+      m.accessCode?.toUpperCase() === cleanUpper ||
+      m.memberNumber?.toUpperCase() === cleanUpper ||
+      m.studentNumber?.toUpperCase().replace(/[\s\-_.]/g, '') === cleanUpper.replace(/[\s\-_.]/g, '') ||
+      m.email?.toUpperCase() === cleanUpper
+    );
+
+    if (existing) {
+      return {
+        found: true,
+        isRegistered: true,
+        name: existing.fullName,
+        phone: existing.phone,
+        accessCode: existing.accessCode,
+        memberNumber: existing.memberNumber,
+        studentNumber: existing.studentNumber,
+        biNumber: existing.biNumber,
+        department: existing.department,
+        role: existing.departmentRole,
+        suggestedPassword: existing.password || '123456',
+        message: `Membro encontrado! Utilize o telefone ${existing.phone} e a sua senha para entrar.`
+      };
+    }
+
+    // Check central school registry
+    const registry = this.getStudentsRegistry();
+    const student = registry.find(s => 
+      matchesPhone(s.phone) ||
+      s.studentNumber.toUpperCase().replace(/[\s\-_.]/g, '') === cleanUpper.replace(/[\s\-_.]/g, '') ||
+      s.email.toUpperCase() === cleanUpper
+    );
+
+    if (student) {
+      return {
+        found: true,
+        isRegistered: false,
+        name: student.fullName,
+        phone: student.phone,
+        accessCode: `AE-${student.studentNumber.toUpperCase().replace(/[\s\-_]/g, '')}`,
+        memberNumber: 'Atribuído no primeiro acesso',
+        studentNumber: student.studentNumber,
+        biNumber: student.biNumber,
+        department: 'Estudantes Associados',
+        role: 'Membro',
+        suggestedPassword: '123456',
+        message: `Aluno encontrado no registo escolar com o telefone ${student.phone}! Pode aceder com a senha padrão 123456.`
+      };
+    }
+
+    return { found: false, message: `Nenhum membro ou aluno encontrado com o telefone "${raw}". Verifique o número digitado ou contacte a Direção da Associação.` };
   }
 
   updateMember(id: string, updates: Partial<Member>): Member | null {

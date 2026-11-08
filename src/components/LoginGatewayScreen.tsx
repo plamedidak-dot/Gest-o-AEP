@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { 
-  KeyRound, 
+  Phone, 
   Lock, 
   LogIn, 
   AlertCircle, 
   Eye, 
   EyeOff, 
   ShieldCheck, 
-  HelpCircle
+  HelpCircle,
+  Search,
+  CheckCircle2,
+  X,
+  CreditCard,
+  UserCheck,
+  Sparkles,
+  School,
+  KeyRound
 } from 'lucide-react';
 import { UserProfile, AssociationSettings } from '../types';
 import { storage } from '../services/storage';
@@ -21,11 +29,17 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
   settings,
   onLoginSuccess,
 }) => {
-  const [accessCode, setAccessCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // First Access / Credential Lookup Modal State
+  const [showLookupModal, setShowLookupModal] = useState(false);
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [lookupResult, setLookupResult] = useState<ReturnType<typeof storage.lookupStudentCredentials> | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,15 +47,28 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
     setIsLoading(true);
 
     setTimeout(() => {
-      const result = storage.authenticate(accessCode, password);
+      const result = storage.authenticate(phoneNumber, password);
       setIsLoading(false);
 
       if (result.success && result.user) {
         onLoginSuccess(result.user);
       } else {
-        setErrorMsg(result.message || 'Código de acesso ou senha incorretos. Verifique as suas credenciais.');
+        setErrorMsg(result.message || 'Número de telefone ou senha incorretos. Verifique o seu número de telefone registado.');
       }
     }, 250);
+  };
+
+  const handlePerformLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = storage.lookupStudentCredentials(lookupQuery);
+    setLookupResult(res);
+  };
+
+  const handleUseCredentials = (phone: string, pass: string) => {
+    setPhoneNumber(phone);
+    setPassword(pass);
+    setShowLookupModal(false);
+    setErrorMsg(null);
   };
 
   return (
@@ -54,7 +81,10 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
       <div className="relative z-10 max-w-5xl w-full mx-auto flex items-center justify-between gap-4 py-2">
         <div className="flex items-center gap-3">
           <img
-            src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
+            src={settings.logoUrl || '/association_crest.jpg'}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/favicon.png';
+            }}
             alt="Brasão Oficial da Escola"
             className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-indigo-400/30 bg-white/10 shrink-0 shadow-lg"
           />
@@ -71,7 +101,7 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
         <div className="hidden sm:flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-[11px] text-indigo-300 font-semibold backdrop-blur-md">
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Acesso Restrito & Seguro</span>
+            <span>Portal Oficial Seguro</span>
           </span>
         </div>
       </div>
@@ -82,13 +112,13 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
           {/* Card Header */}
           <div className="p-6 sm:p-8 bg-slate-50/70 border-b border-slate-100 text-center space-y-2">
             <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-indigo-600/30 shadow-lg mb-3">
-              <KeyRound className="w-7 h-7" />
+              <Phone className="w-7 h-7" />
             </div>
             <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
               Autenticação Obrigatória
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-              Insira o seu <strong>Código de Acesso</strong> e <strong>Senha</strong> para entrar no portal da Associação de Estudantes.
+              Insira o seu <strong>Número de Telefone</strong> e a sua <strong>Senha de Acesso</strong> para entrar no portal.
             </p>
           </div>
 
@@ -103,22 +133,22 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
 
             <div>
               <label className="block font-bold text-slate-700 mb-1.5">
-                Código de Acesso ou Nº de Associado *
+                Número de Telefone *
               </label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
-                  type="text"
-                  value={accessCode}
-                  onChange={(e) => setAccessCode(e.target.value)}
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   required
                   autoFocus
-                  placeholder="Ex: AE-PRESIDENTE ou AE-PROC1042"
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600 font-mono text-xs uppercase font-bold text-slate-900 transition-all placeholder:text-slate-400 placeholder:normal-case"
+                  placeholder="Ex: 923 000 001 ou 9xx xxx xxx"
+                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600 font-mono text-xs font-bold text-slate-900 transition-all placeholder:text-slate-400 placeholder:font-normal"
                 />
               </div>
               <p className="text-[10px] text-slate-400 mt-1">
-                Atribuído na ficha de credenciais da Associação.
+                Introduza o número de telefone com o qual foi registado na Associação.
               </p>
             </div>
 
@@ -128,7 +158,7 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
                   Senha de Acesso *
                 </label>
                 <span className="text-[10px] text-slate-400">
-                  Sensível a maiúsculas
+                  (Primeiro acesso: 123456)
                 </span>
               </div>
               <div className="relative">
@@ -166,18 +196,161 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
               ) : (
                 <>
                   <LogIn className="w-4 h-4" />
-                  <span>Entrar no Sistema</span>
+                  <span>Entrar com o Telefone</span>
                 </>
               )}
             </button>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
-              <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span>Esqueceu as suas credenciais? Contacte a Direção da AE.</span>
+            {/* First Access / Consult Credentials Action */}
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLookupModal(true);
+                  setLookupQuery(phoneNumber || '');
+                  setLookupResult(null);
+                }}
+                className="w-full py-2 px-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Search className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Consultar Senha pelo Telefone</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowGuide(!showGuide)}
+                className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 pt-1 font-medium transition-colors"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>{showGuide ? 'Ocultar telefones de acesso' : 'Ver telefones oficiais de acesso'}</span>
+              </button>
+
+              {/* Informative credentials guidance */}
+              {showGuide && (
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-2 animate-in fade-in">
+                  <p className="font-bold text-slate-800">Telefones e Senhas Oficiais:</p>
+                  <ul className="space-y-1.5 list-disc list-inside">
+                    <li><strong>Membros & Alunos Registados:</strong> Devem usar o seu <strong>número de telefone</strong> e a senha padrão <code>123456</code> (ou a senha atribuída na secretaria).</li>
+                    <li><strong>Direção Administrativa:</strong>
+                      <div className="mt-1 pl-2 font-mono text-[10px] space-y-0.5 text-indigo-950">
+                        <div>Presidente: <code>923 000 001</code> (senha: <code>admin123</code>)</div>
+                        <div>Vice-Presidente: <code>923 000 002</code> (senha: <code>vice123</code>)</div>
+                        <div>Secretária: <code>923 000 003</code> (senha: <code>sec123</code>)</div>
+                        <div>Tesoureiro: <code>923 000 004</code> (senha: <code>tesouro123</code>)</div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           </form>
         </div>
       </div>
+
+      {/* Lookup Modal */}
+      {showLookupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white text-slate-900 rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">
+                    Consultar Credenciais por Telefone
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Verifique os dados da sua conta através do seu número de telemóvel
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLookupModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <form onSubmit={handlePerformLookup} className="space-y-3">
+                <label className="block font-bold text-slate-800">
+                  Introduza o seu Número de Telefone:
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="tel"
+                    value={lookupQuery}
+                    onChange={(e) => setLookupQuery(e.target.value)}
+                    required
+                    placeholder="Ex: 923 000 001 ou 9xx xxx xxx"
+                    className="flex-1 font-mono font-bold px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600 text-xs text-slate-900"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-xs transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Verificar</span>
+                  </button>
+                </div>
+              </form>
+
+              {lookupResult && (
+                <div className="pt-2 animate-in fade-in">
+                  {lookupResult.found ? (
+                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-3 text-emerald-950">
+                      <div className="flex items-start gap-2.5">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-xs text-emerald-900">
+                            Registo Encontrado!
+                          </p>
+                          <p className="text-[11px] text-emerald-800 font-medium">
+                            {lookupResult.name} ({lookupResult.role} · {lookupResult.department})
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/80 p-3 rounded-xl border border-emerald-200/60 space-y-1.5 font-mono text-[11px]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 font-sans">Telefone Registado:</span>
+                          <span className="font-bold text-indigo-700">{lookupResult.phone}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 font-sans">Senha para Acesso:</span>
+                          <span className="font-bold text-emerald-700">{lookupResult.suggestedPassword}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleUseCredentials(lookupResult.phone || lookupQuery, lookupResult.suggestedPassword || '123456')}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                      >
+                        <UserCheck className="w-4 h-4" />
+                        <span>Preencher e Entrar no Sistema</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        <p className="text-[11px] font-semibold">{lookupResult.message}</p>
+                      </div>
+                      <p className="text-[10px] text-rose-700">
+                        Verifique se introduziu o número de telefone com o qual foi cadastrado. Se ainda não possui cadastro, a Direção da Associação pode adicionar o seu número.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="relative z-10 max-w-5xl w-full mx-auto text-center py-2 text-[11px] text-slate-500">
@@ -188,3 +361,4 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
     </div>
   );
 };
+

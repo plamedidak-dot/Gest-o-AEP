@@ -1,10 +1,21 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+
+// User's official Firebase Web Project Configuration (gestaep-1f3ed)
+export const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyC6JWO2_fttUW0eaHG1tOOb_CgC4Pso334",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "gestaep-1f3ed.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "gestaep-1f3ed",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "gestaep-1f3ed.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "405965217123",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:405965217123:web:2992d813f1c353fb068756",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-VR1YC0KBYY"
+};
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Connect to the default Firestore database of gestaep-1f3ed
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 export enum OperationType {
@@ -56,7 +67,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 export async function testFirestoreConnection(): Promise<boolean> {
   try {
-    await getDocFromServer(doc(db, 'settings', 'connection_test'));
+    await getDocFromServer(doc(db, 'settings', 'config'));
     return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {

@@ -910,16 +910,23 @@ export const MembersView: React.FC<MembersViewProps> = ({
               <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden border border-indigo-400/30">
                 <div className="flex items-center justify-between pb-4 border-b border-white/10">
                   <div className="flex items-center gap-2.5">
-                    <img
-                      src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
-                      alt="Brasão"
-                      className="w-10 h-10 rounded-full object-cover bg-white ring-1 ring-white/20"
-                    />
+                    <div className="flex items-center -space-x-1.5 shrink-0">
+                      <img
+                        src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                        alt="Complexo Proglory"
+                        className="w-9 h-9 rounded-lg object-contain p-0.5 bg-white ring-1 ring-amber-400"
+                      />
+                      <img
+                        src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                        alt="AEP-2"
+                        className="w-9 h-9 rounded-lg object-contain bg-black ring-1 ring-white/30"
+                      />
+                    </div>
                     <div>
                       <h4 className="text-xs font-black tracking-wider text-white uppercase">
-                        {settings.acronym}
+                        {settings.acronym} · {settings.institution}
                       </h4>
-                      <p className="text-[9px] text-indigo-200">
+                      <p className="text-[9px] text-amber-300 font-semibold truncate max-w-[220px]">
                         {settings.name}
                       </p>
                     </div>

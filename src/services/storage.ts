@@ -48,20 +48,22 @@ export const INITIAL_DEPARTMENTS: DepartmentItem[] = [];
 export const DEPARTMENTS_LIST: string[] = [];
 
 export const DEFAULT_SETTINGS: AssociationSettings = {
-  name: 'Associação de Estudantes da Escola',
-  acronym: 'AE',
-  institution: 'Complexo Escolar / Escola Secundária',
+  name: 'Associação dos Estudantes do Complexo Escolar Privado Proglory da Graça - Polo II',
+  acronym: 'AEP-2',
+  institution: 'Complexo Escolar Privado Proglory da Graça - Polo II',
   academicYear: '2026/2027',
   currency: 'Kz',
   quotaAmount: 500,
   quotaCadence: 'semanal',
-  presidentName: 'Presidente da AE',
-  vicePresidentName: 'Vice-Presidente da AE',
-  secretaryName: 'Secretário-Geral',
-  treasurerName: 'Tesoureiro da AE',
-  contactEmail: 'associacao@escola.ao',
-  contactPhone: '+244 923 000 000',
-  address: 'Edifício Escolar, Sala da Associação de Estudantes',
+  presidentName: 'Presidente da AEP-2',
+  vicePresidentName: 'Vice-Presidente da AEP-2',
+  secretaryName: 'Secretária da AEP-2',
+  treasurerName: 'Tesoureiro da AEP-2',
+  contactEmail: 'aep2.proglory@gmail.com',
+  contactPhone: '+244 923 000 001',
+  address: 'Complexo Escolar Privado Proglory da Graça 2, Luanda, Angola',
+  logoUrl: '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg',
+  schoolLogoUrl: '/assets/aistudio/PEQUENO_87357065.png',
 };
 
 // Initial state is CLEAN and EMPTY as requested by user
@@ -73,8 +75,8 @@ export const INITIAL_DOCUMENTS: AssociationDocument[] = [];
 export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
     id: 'notif-welcome',
-    title: 'Bem-vindo ao Sistema da Associação Escolar',
-    message: 'O sistema foi configurado com quotas semanais de 500 Kz e estrutura departamental (Presidente/Vice no Admin, Coordenador/Vice nos restantes departamentos). Comece por adicionar os membros!',
+    title: 'Bem-vindo ao Sistema da AEP-2',
+    message: 'Sistema Oficial da Associação dos Estudantes do Complexo Escolar Privado Proglory da Graça 2. Gestão departamental e quotas semanais de 500 Kz.',
     date: new Date().toISOString(),
     type: 'system',
     read: false,
@@ -84,65 +86,65 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
 export const ADMIN_ACCOUNTS: UserProfile[] = [
   {
     id: 'usr-admin-presidente',
-    email: 'presidente@escola.ao',
-    name: 'Presidente da AE',
+    email: 'presidente@proglory.ao',
+    name: 'Presidente da AEP-2',
     role: 'admin',
     adminRole: 'Presidente',
     department: 'Departamento Administrativo',
     departmentRole: 'Presidente',
-    accessCode: 'AE-PRESIDENTE',
+    accessCode: 'AEP2-PRESIDENTE',
     password: 'admin123',
     phone: '+244 923 000 001',
-    bio: 'Presidente do Departamento Administrativo da Associação de Estudantes da Escola.',
-    emergencyContact: 'Direção da Escola',
+    bio: 'Presidente da Associação dos Estudantes do Complexo Escolar Privado Proglory da Graça 2.',
+    emergencyContact: 'Direção do Complexo Proglory',
     joinedYear: '2026',
     notificationsEnabled: true,
   },
   {
     id: 'usr-admin-vice',
-    email: 'vice@escola.ao',
-    name: 'Vice-Presidente da AE',
+    email: 'vice@proglory.ao',
+    name: 'Vice-Presidente da AEP-2',
     role: 'admin',
     adminRole: 'Vice-Presidente',
     department: 'Departamento Administrativo',
     departmentRole: 'Vice-Presidente',
-    accessCode: 'AE-VICE',
+    accessCode: 'AEP2-VICE',
     password: 'vice123',
     phone: '+244 923 000 002',
-    bio: 'Vice-Presidente da Associação de Estudantes da Escola.',
-    emergencyContact: 'Direção da Escola',
+    bio: 'Vice-Presidente da AEP-2 (Complexo Escolar Privado Proglory da Graça 2).',
+    emergencyContact: 'Direção do Complexo Proglory',
     joinedYear: '2026',
     notificationsEnabled: true,
   },
   {
     id: 'usr-admin-secretaria',
-    email: 'secretaria@escola.ao',
-    name: 'Secretária da AE',
+    email: 'secretaria@proglory.ao',
+    name: 'Secretária da AEP-2',
     role: 'admin',
     adminRole: 'Secretária',
     department: 'Departamento Administrativo',
     departmentRole: 'Secretária',
-    accessCode: 'AE-SECRETARIA',
+    accessCode: 'AEP2-SECRETARIA',
     password: 'sec123',
     phone: '+244 923 000 003',
-    bio: 'Secretária-Geral da Associação de Estudantes da Escola.',
-    emergencyContact: 'Secretaria Escolar',
+    bio: 'Secretária-Geral da AEP-2 (Complexo Escolar Privado Proglory da Graça 2).',
+    emergencyContact: 'Secretaria Escolar Proglory',
     joinedYear: '2026',
     notificationsEnabled: true,
   },
   {
     id: 'usr-admin-tesoureiro',
-    email: 'tesouraria@escola.ao',
-    name: 'Tesoureiro da AE',
+    email: 'tesouraria@proglory.ao',
+    name: 'Tesoureiro da AEP-2',
     role: 'admin',
     adminRole: 'Tesoureiro',
     department: 'Departamento Administrativo',
     departmentRole: 'Tesoureiro',
-    accessCode: 'AE-TESOURARIA',
+    accessCode: 'AEP2-TESOURARIA',
     password: 'tesouro123',
     phone: '+244 923 000 004',
-    bio: 'Tesoureiro da Associação de Estudantes da Escola.',
-    emergencyContact: 'Gabinete de Contabilidade',
+    bio: 'Tesoureiro da AEP-2 (Complexo Escolar Privado Proglory da Graça 2).',
+    emergencyContact: 'Contabilidade Proglory',
     joinedYear: '2026',
     notificationsEnabled: true,
   },
@@ -556,7 +558,31 @@ class StorageService {
       return DEFAULT_SETTINGS;
     }
     try {
-      return JSON.parse(data);
+      const parsed: AssociationSettings = JSON.parse(data);
+      // Auto-migrate if stored settings have generic placeholder names or older logos
+      if (
+        !parsed.name || 
+        parsed.name.includes('Associação de Estudantes da Escola') || 
+        !parsed.logoUrl || 
+        parsed.logoUrl.includes('crest_1793825853762') ||
+        !parsed.schoolLogoUrl
+      ) {
+        const updated: AssociationSettings = {
+          ...parsed,
+          name: DEFAULT_SETTINGS.name,
+          acronym: DEFAULT_SETTINGS.acronym,
+          institution: DEFAULT_SETTINGS.institution,
+          logoUrl: DEFAULT_SETTINGS.logoUrl,
+          schoolLogoUrl: DEFAULT_SETTINGS.schoolLogoUrl,
+          presidentName: parsed.presidentName?.includes('Presidente da AE') ? DEFAULT_SETTINGS.presidentName : (parsed.presidentName || DEFAULT_SETTINGS.presidentName),
+          vicePresidentName: parsed.vicePresidentName?.includes('Vice-Presidente da AE') ? DEFAULT_SETTINGS.vicePresidentName : (parsed.vicePresidentName || DEFAULT_SETTINGS.vicePresidentName),
+          secretaryName: parsed.secretaryName?.includes('Secretário-Geral') ? DEFAULT_SETTINGS.secretaryName : (parsed.secretaryName || DEFAULT_SETTINGS.secretaryName),
+          treasurerName: parsed.treasurerName?.includes('Tesoureiro da AE') ? DEFAULT_SETTINGS.treasurerName : (parsed.treasurerName || DEFAULT_SETTINGS.treasurerName),
+        };
+        this.saveSettings(updated);
+        return updated;
+      }
+      return parsed;
     } catch {
       return DEFAULT_SETTINGS;
     }

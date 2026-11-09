@@ -105,7 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems = getNavItems();
 
-  const logoSrc = settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg';
+  const logoSrc = settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg';
+  const schoolLogoSrc = settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png';
 
   const handleItemClick = (tabId: string) => {
     onSelectTab(tabId);
@@ -116,20 +117,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarContent = (
     <>
-      {/* Brand Zone with uploaded custom logo or default crest */}
-      <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0">
-          <img
-            src={logoSrc}
-            alt="Logótipo da Associação"
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-400/40 shrink-0 bg-white"
-          />
+      {/* Brand Zone with official AEP-2 logo and Proglory school crest */}
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center -space-x-2 shrink-0">
+            <img
+              src={schoolLogoSrc}
+              alt="Complexo Escolar Privado Proglory"
+              className="w-9 h-9 rounded-xl object-contain p-0.5 ring-2 ring-amber-400/40 shrink-0 bg-white shadow-sm"
+            />
+            <img
+              src={logoSrc}
+              alt="Emblema AEP-2"
+              className="w-9 h-9 rounded-xl object-contain ring-2 ring-indigo-400/50 shrink-0 bg-black shadow-sm"
+            />
+          </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-white tracking-tight truncate leading-tight">
-              {settings.acronym}
+            <h2 className="text-sm font-black text-white tracking-wider truncate leading-tight uppercase flex items-center gap-1.5">
+              <span>{settings.acronym}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Polo II
+              </span>
             </h2>
-            <p className="text-[11px] text-slate-400 truncate">
-              {settings.academicYear}
+            <p className="text-[11px] text-slate-300 truncate font-medium">
+              Proglory da Graça 2
             </p>
           </div>
         </div>
@@ -146,9 +157,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="px-4 py-2 border-b border-slate-800/60 bg-slate-900/50">
-        <p className="text-[11px] text-slate-400 truncate leading-relaxed">
-          {settings.name}
+      <div className="px-3.5 py-2 border-b border-slate-800/60 bg-slate-900/60">
+        <p className="text-[10px] font-semibold text-slate-300 leading-snug line-clamp-2">
+          {settings.institution}
         </p>
       </div>
 

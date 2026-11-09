@@ -100,20 +100,27 @@ export const PdfReportModal: React.FC<PdfReportModalProps> = ({
           <div className="border-b-2 border-slate-900 pb-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <img
-                  src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
-                  alt="Brasão"
-                  className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-200"
-                />
+                <div className="flex items-center -space-x-2 shrink-0">
+                  <img
+                    src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                    alt="Complexo Escolar Privado Proglory"
+                    className="w-16 h-16 rounded-xl object-contain p-1 ring-2 ring-amber-400 bg-white shadow-sm"
+                  />
+                  <img
+                    src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                    alt="Emblema AEP-2"
+                    className="w-16 h-16 rounded-xl object-contain ring-2 ring-slate-900 bg-black shadow-sm"
+                  />
+                </div>
                 <div>
                   <h1 className="text-base font-black uppercase tracking-wider text-slate-900 leading-tight">
                     {settings.institution}
                   </h1>
-                  <h2 className="text-sm font-bold text-indigo-950 mt-0.5">
+                  <h2 className="text-sm font-bold text-orange-950 mt-0.5">
                     {settings.name} ({settings.acronym})
                   </h2>
                   <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                    {settings.address} · {settings.contactEmail} · {settings.contactPhone}
+                    {settings.address} · Mandato {settings.academicYear} · {settings.contactPhone}
                   </p>
                 </div>
               </div>

@@ -48,20 +48,27 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           {/* Header */}
           <div className="flex items-start justify-between border-b border-slate-200 pb-5">
             <div className="flex items-center gap-3">
-              <img
-                src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
-                alt="Brasão AE"
-                className="w-14 h-14 rounded-full object-cover ring-2 ring-slate-100"
-              />
+              <div className="flex items-center -space-x-2 shrink-0">
+                <img
+                  src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                  alt="Complexo Proglory"
+                  className="w-13 h-13 rounded-xl object-contain p-0.5 ring-2 ring-amber-300 bg-white"
+                />
+                <img
+                  src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                  alt="AEP-2"
+                  className="w-13 h-13 rounded-xl object-contain ring-2 ring-slate-800 bg-black"
+                />
+              </div>
               <div>
                 <h3 className="text-sm font-black tracking-wide uppercase text-slate-900">
                   {settings.name}
                 </h3>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                <p className="text-xs text-slate-600 font-bold mt-0.5">
                   {settings.institution}
                 </p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
-                  {settings.address} · {settings.contactEmail}
+                  {settings.address} · Mandato {settings.academicYear}
                 </p>
               </div>
             </div>

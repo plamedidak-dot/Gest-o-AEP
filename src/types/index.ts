@@ -191,5 +191,6 @@ export interface AssociationSettings {
   contactEmail: string;
   contactPhone: string;
   address: string;
-  logoUrl?: string; // URL ou base64 do logótipo da associação
+  logoUrl?: string; // URL ou base64 do logótipo da associação (AEP-2)
+  schoolLogoUrl?: string; // URL ou base64 do logótipo do Complexo Escolar Privado Proglory
 }

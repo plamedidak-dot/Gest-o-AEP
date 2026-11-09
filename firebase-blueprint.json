@@ -138,7 +138,8 @@
         "contactEmail": { "type": "string" },
         "contactPhone": { "type": "string" },
         "address": { "type": "string" },
-        "logoUrl": { "type": "string" }
+        "logoUrl": { "type": "string" },
+        "schoolLogoUrl": { "type": "string" }
       },
       "required": ["name", "acronym", "institution"]
     }

@@ -422,26 +422,33 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {/* Background watermark */}
             <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
               <img
-                src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
+                src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
                 alt=""
-                className="w-48 h-48 rounded-full"
+                className="w-48 h-48 rounded-xl object-contain"
               />
             </div>
 
             {/* Card Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <img
-                  src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
-                  alt="Brasão"
-                  className="w-9 h-9 rounded-full object-cover bg-white ring-1 ring-white/20"
-                />
+                <div className="flex items-center -space-x-1.5 shrink-0">
+                  <img
+                    src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                    alt="Complexo Proglory"
+                    className="w-8 h-8 rounded-lg object-contain p-0.5 bg-white ring-1 ring-amber-400"
+                  />
+                  <img
+                    src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                    alt="AEP-2"
+                    className="w-8 h-8 rounded-lg object-contain bg-black ring-1 ring-white/30"
+                  />
+                </div>
                 <div>
                   <h4 className="text-xs font-black tracking-wider text-white uppercase">
                     {settings.acronym}
                   </h4>
-                  <p className="text-[9px] text-indigo-200">
-                    Cartão Oficial de Associado
+                  <p className="text-[9px] text-amber-300 font-semibold truncate max-w-[200px]">
+                    Proglory da Graça 2 · Polo II
                   </p>
                 </div>
               </div>

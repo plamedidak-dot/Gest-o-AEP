@@ -32,16 +32,16 @@ interface SettingsViewProps {
 // Preset logos that users can choose with 1 click
 const PRESET_LOGOS = [
   {
-    id: 'default',
-    name: 'Brasão Oficial da Escola (Padrão)',
-    url: '/src/assets/images/association_crest_1793825853762.jpg',
-    description: 'Insígnia tradicional com louros e livro aberto',
+    id: 'aep2_official',
+    name: 'Emblema Oficial AEP-2 (Associação)',
+    url: '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg',
+    description: 'Emblema oficial com capelo e livro da AEP-2 Polo II',
   },
   {
-    id: 'gold_academic',
-    name: 'Emblema Dourado Académico',
-    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="%231e1b4b" stroke="%23f59e0b" stroke-width="4"/><circle cx="50" cy="50" r="42" fill="none" stroke="%23f59e0b" stroke-width="1" stroke-dasharray="3,3"/><path d="M50 20 L28 32 L50 44 L72 32 Z" fill="%23f59e0b"/><path d="M34 38 L34 58 C34 66 50 74 50 74 C50 74 66 66 66 58 L66 38" fill="none" stroke="%23f59e0b" stroke-width="3"/><path d="M72 34 L78 38 L78 52" fill="none" stroke="%23f59e0b" stroke-width="2"/><circle cx="50" cy="56" r="6" fill="%23f59e0b"/></svg>',
-    description: 'Estilo nobre azul escuro e dourado com capelo',
+    id: 'proglory_crest',
+    name: 'Brasão Oficial Proglory (C.E.P.P.)',
+    url: '/assets/aistudio/PEQUENO_87357065.png',
+    description: 'Logótipo oficial do Complexo Escolar Privado Proglory',
   },
   {
     id: 'emerald_crest',

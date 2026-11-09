@@ -80,19 +80,29 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
       {/* Top School Header */}
       <div className="relative z-10 max-w-5xl w-full mx-auto flex items-center justify-between gap-4 py-2">
         <div className="flex items-center gap-3">
-          <img
-            src={settings.logoUrl || '/association_crest.jpg'}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/favicon.png';
-            }}
-            alt="Brasão Oficial da Escola"
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-indigo-400/30 bg-white/10 shrink-0 shadow-lg"
-          />
+          <div className="flex items-center -space-x-2 shrink-0">
+            <img
+              src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/favicon.png';
+              }}
+              alt="Logótipo do Complexo Escolar Privado Proglory"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-contain p-1 ring-2 ring-amber-400/50 bg-white shrink-0 shadow-lg"
+            />
+            <img
+              src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/favicon.png';
+              }}
+              alt="Emblema AEP-2"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-contain p-0.5 ring-2 ring-indigo-400/50 bg-black shrink-0 shadow-lg"
+            />
+          </div>
           <div>
             <h1 className="text-xs sm:text-sm font-black tracking-wider uppercase text-white">
               {settings.name} ({settings.acronym})
             </h1>
-            <p className="text-[11px] text-slate-400 font-medium">
+            <p className="text-[11px] text-amber-300/90 font-medium">
               {settings.institution} · Mandato {settings.academicYear}
             </p>
           </div>
@@ -110,15 +120,31 @@ export const LoginGatewayScreen: React.FC<LoginGatewayScreenProps> = ({
       <div className="relative z-10 max-w-md w-full mx-auto my-auto py-6">
         <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform transition-all">
           {/* Card Header */}
-          <div className="p-6 sm:p-8 bg-slate-50/70 border-b border-slate-100 text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-indigo-600/30 shadow-lg mb-3">
-              <Phone className="w-7 h-7" />
+          <div className="p-6 sm:p-7 bg-slate-50/70 border-b border-slate-100 text-center space-y-2">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center">
+                <img
+                  src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                  alt="Complexo Escolar Privado Proglory"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="w-14 h-14 rounded-2xl bg-black border border-slate-800 shadow-sm p-1 flex items-center justify-center">
+                <img
+                  src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                  alt="AEP-2"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+            <div className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-900 border border-orange-200">
+              AEP-2 · Proglory da Graça 2
             </div>
             <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
-              Autenticação Obrigatória
+              Autenticação de Membro
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-              Insira o seu <strong>Número de Telefone</strong> e a sua <strong>Senha de Acesso</strong> para entrar no portal.
+              Insira o seu <strong>Número de Telefone</strong> e a sua <strong>Senha de Acesso</strong> para entrar no sistema da Associação.
             </p>
           </div>
 

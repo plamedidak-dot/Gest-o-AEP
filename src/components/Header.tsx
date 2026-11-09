@@ -104,8 +104,8 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden lg:inline">
-          Portal AE
+        <span className="text-xs font-black uppercase tracking-wider text-orange-600 hidden lg:inline">
+          AEP-2 · Proglory 2
         </span>
         <span className="text-slate-300 hidden lg:inline">/</span>
         <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 truncate">

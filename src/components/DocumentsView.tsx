@@ -424,15 +424,22 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
             <div className="p-8 sm:p-10 text-slate-900 space-y-6 bg-white" id="printable-certificate">
               {/* Certificate Header */}
               <div className="text-center space-y-2 border-b-2 border-slate-800 pb-5">
-                <img
-                  src={settings.logoUrl || '/src/assets/images/association_crest_1793825853762.jpg'}
-                  alt="Brasão AE"
-                  className="w-16 h-16 rounded-full mx-auto object-cover ring-2 ring-slate-100"
-                />
+                <div className="flex items-center justify-center gap-3">
+                  <img
+                    src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                    alt="Complexo Proglory"
+                    className="w-16 h-16 rounded-xl object-contain p-0.5 ring-2 ring-amber-400 bg-white"
+                  />
+                  <img
+                    src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                    alt="AEP-2"
+                    className="w-16 h-16 rounded-xl object-contain ring-2 ring-slate-900 bg-black"
+                  />
+                </div>
                 <h2 className="text-base font-black tracking-wider uppercase text-slate-900">
                   {settings.name} ({settings.acronym})
                 </h2>
-                <p className="text-xs text-slate-600 font-semibold">
+                <p className="text-xs text-slate-700 font-bold">
                   {settings.institution}
                 </p>
                 <p className="text-[10px] text-slate-400">

@@ -1,11 +1,11 @@
 {
-  "name": "Portal da Associação de Estudantes",
-  "short_name": "Portal AE",
-  "description": "Sistema integrado de gestão para associação de estudantes: gestão de membros, quotas, eventos, arquivo documental e controle de presenças.",
+  "name": "AEP-2 · Associação dos Estudantes do Complexo Escolar Privado Proglory da Graça 2",
+  "short_name": "AEP-2",
+  "description": "Sistema integrado de gestão para a Associação dos Estudantes do Complexo Escolar Privado Proglory da Graça 2: membros, quotas, presenças e arquivo.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",
-  "theme_color": "#4f46e5",
+  "theme_color": "#ea580c",
   "icons": [
     {
       "src": "/favicon.png",

@@ -408,6 +408,24 @@ export const PdfReportModal: React.FC<PdfReportModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Sticky Mobile Bottom Floating Actions */}
+        <div className="no-print sm:hidden p-3 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0 shadow-lg pb-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+            <span>Fechar Relatório</span>
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex-1 py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Imprimir A4</span>
+          </button>
+        </div>
       </div>
     </div>
   );

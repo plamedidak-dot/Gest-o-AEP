@@ -16,27 +16,28 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   onClose,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-150 overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] my-auto">
         {/* Top bar (hidden in print) */}
-        <div className="no-print p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="no-print p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="text-xs font-bold text-slate-800">
+            <span className="text-xs sm:text-sm font-bold text-slate-800">
               Recibo Oficial de Quota de Associado
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.print()}
-              className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-800 transition-colors shadow-sm"
+              className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Imprimir / PDF</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200"
+              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 cursor-pointer"
+              aria-label="Fechar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -44,7 +45,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         </div>
 
         {/* Printable Document Area */}
-        <div className="p-8 space-y-6 text-slate-900 bg-white" id="printable-receipt">
+        <div className="overflow-y-auto p-4 sm:p-8 space-y-6 text-slate-900 bg-white flex-1" id="printable-receipt">
           {/* Header */}
           <div className="flex items-start justify-between border-b border-slate-200 pb-5">
             <div className="flex items-center gap-3">
@@ -157,6 +158,24 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Sticky Mobile Bottom Floating Actions */}
+        <div className="no-print sm:hidden p-3 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0 shadow-lg pb-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+            <span>Fechar Recibo</span>
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Imprimir A4</span>
+          </button>
         </div>
       </div>
     </div>

@@ -8,6 +8,8 @@ import { QuotasView } from './components/QuotasView';
 import { DocumentsView } from './components/DocumentsView';
 import { ProfileView } from './components/ProfileView';
 import { SettingsView } from './components/SettingsView';
+import { DeveloperConsoleView } from './components/DeveloperConsoleView';
+import { GeneralAdminDashboard } from './components/GeneralAdminDashboard';
 import { AttendanceManagerModal } from './components/AttendanceManagerModal';
 import { ReceiptModal } from './components/ReceiptModal';
 import { PdfReportModal, ReportType } from './components/PdfReportModal';
@@ -27,7 +29,7 @@ import {
   AppNotification 
 } from './types';
 import { getMemberQuotaStatus } from './utils/formatters';
-import { isGlobalAdmin, canManageDepartment, getAccessibleMembers } from './utils/permissions';
+import { isGlobalAdmin, isSuperAdmin, canManageDepartment, getAccessibleMembers } from './utils/permissions';
 import { 
   LayoutDashboard, 
   Users, 
@@ -97,15 +99,19 @@ export default function App() {
   // Role-based navigation protection
   useEffect(() => {
     if (!currentUser) return;
+    if ((currentTab === 'general_admin' || currentTab === 'dev_console') && !isSuperAdmin(currentUser)) {
+      setCurrentTab('dashboard');
+      return;
+    }
     if (currentUser.role === 'member') {
-      const nonMemberTabs = ['dashboard', 'members', 'quotas', 'attendance', 'settings'];
+      const nonMemberTabs = ['dashboard', 'members', 'quotas', 'attendance', 'settings', 'dev_console', 'general_admin'];
       if (nonMemberTabs.includes(currentTab)) {
         setCurrentTab('profile');
       }
     } else if (currentUser.role === 'coordinator' || currentUser.role === 'subcoordinator' || currentUser.role === 'secretary') {
       // Department leaders and secretaries can access dashboard, members, attendance, documents, calendar
       // Only general school settings and global quota treasury are reserved for Global Administration
-      if (currentTab === 'settings' || currentTab === 'quotas') {
+      if (currentTab === 'settings' || currentTab === 'quotas' || currentTab === 'dev_console' || currentTab === 'general_admin') {
         setCurrentTab('dashboard');
       }
     }
@@ -124,7 +130,9 @@ export default function App() {
         onLoginSuccess={(user) => {
           storage.setCurrentUser(user);
           setCurrentUser(user);
-          if (user.role === 'admin' || user.role === 'coordinator' || user.role === 'subcoordinator' || user.role === 'secretary') {
+          if (isSuperAdmin(user)) {
+            setCurrentTab('general_admin');
+          } else if (user.role === 'admin' || user.role === 'coordinator' || user.role === 'subcoordinator' || user.role === 'secretary') {
             setCurrentTab('dashboard');
           } else {
             setCurrentTab('profile');
@@ -384,6 +392,22 @@ export default function App() {
               currentUser={currentUser}
               onSettingsUpdated={setSettings}
               onLoadSampleData={handleLoadSampleData}
+            />
+          )}
+
+          {currentTab === 'general_admin' && (
+            <GeneralAdminDashboard
+              currentUser={currentUser}
+              settings={settings}
+              onReloadData={reloadData}
+            />
+          )}
+
+          {currentTab === 'dev_console' && (
+            <DeveloperConsoleView
+              currentUser={currentUser}
+              settings={settings}
+              onReloadData={reloadData}
             />
           )}
         </main>

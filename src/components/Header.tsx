@@ -58,6 +58,8 @@ export const Header: React.FC<HeaderProps> = ({
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const tabTitles: Record<string, string> = {
+    general_admin: 'Painel SuperAdmin (Permissões & Logs)',
+    dev_console: 'Consola do Engenheiro (Supervisão Técnica)',
     dashboard: 'Painel Geral',
     calendar: 'Calendário & Eventos',
     members: 'Gestão de Membros',

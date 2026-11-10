@@ -1,5 +1,5 @@
-export type UserRole = 'admin' | 'coordinator' | 'subcoordinator' | 'secretary' | 'member';
-export type AdminRole = 'Presidente' | 'Vice-Presidente' | 'Secretária' | 'Secretário-Geral' | 'Tesoureiro' | string;
+export type UserRole = 'superadmin' | 'admin' | 'coordinator' | 'subcoordinator' | 'secretary' | 'member';
+export type AdminRole = 'Presidente' | 'Vice-Presidente' | 'Secretária' | 'Secretário-Geral' | 'Tesoureiro' | 'Engenheiro do Sistema' | 'Desenvolvedor Geral' | string;
 export type DepartmentRole = 'Coordenador' | 'Vice-Coordenador' | 'Subcoordenador' | 'Secretária' | 'Membro' | string;
 
 export interface UserProfile {
@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   name: string;
   role: UserRole;
+  isDeveloper?: boolean;
   adminRole?: AdminRole;
   department?: string; // Departamento associado (ex: "Departamento Pedagógico")
   departmentRole?: string; // Cargo departamental (ex: "Coordenador", "Subcoordenador", "Secretária")
@@ -193,4 +194,17 @@ export interface AssociationSettings {
   address: string;
   logoUrl?: string; // URL ou base64 do logótipo da associação (AEP-2)
   schoolLogoUrl?: string; // URL ou base64 do logótipo do Complexo Escolar Privado Proglory
+}
+
+export type LogLevel = 'info' | 'warn' | 'error' | 'security';
+
+export interface SystemLogEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  details: string;
+  level: LogLevel;
+  user?: string;
+  category?: 'auth' | 'permissions' | 'database' | 'system' | 'documents';
+  ipOrDevice?: string;
 }

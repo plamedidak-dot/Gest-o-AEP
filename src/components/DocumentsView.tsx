@@ -393,111 +393,152 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       )}
 
       {/* Official Certificate Generator Modal */}
+      {/* Official Certificate Generator Modal */}
       {certificateMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
-            <div className="no-print p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-indigo-600" />
-                <span className="text-xs font-bold text-slate-800">
-                  Emissor de Certidão / Declaração de Associado
-                </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150 overflow-hidden">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] my-auto">
+            {/* Sticky Header with prominent, touch-friendly Fechar and Imprimir buttons */}
+            <div className="no-print p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 shrink-0">
+                  <Award className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                    Declaração Oficial de Associado
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+                    Formato A4 Oficial (210 × 297 mm)
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => window.print()}
-                  className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-800 transition-colors shadow-sm"
+                  className="px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Imprimir Certidão Oficial</span>
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Imprimir A4</span>
+                  <span className="sm:hidden">Imprimir</span>
                 </button>
                 <button
                   onClick={() => setCertificateMember(null)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200"
+                  className="p-2 text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-200 rounded-xl border border-slate-200 transition-colors cursor-pointer"
+                  title="Fechar visualização"
+                  aria-label="Fechar"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Printable Certificate Page */}
-            <div className="p-8 sm:p-10 text-slate-900 space-y-6 bg-white" id="printable-certificate">
-              {/* Certificate Header */}
-              <div className="text-center space-y-2 border-b-2 border-slate-800 pb-5">
-                <div className="flex items-center justify-center gap-3">
-                  <img
-                    src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
-                    alt="Complexo Proglory"
-                    className="w-16 h-16 rounded-xl object-contain p-0.5 ring-2 ring-amber-400 bg-white"
-                  />
-                  <img
-                    src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
-                    alt="AEP-2"
-                    className="w-16 h-16 rounded-xl object-contain ring-2 ring-slate-900 bg-black"
-                  />
+            {/* Scrollable Document Container with standard A4 Sheet styling */}
+            <div className="overflow-y-auto p-3 sm:p-6 md:p-8 bg-slate-100/70 flex-1">
+              <div 
+                className="a4-document max-w-[210mm] min-h-[297mm] mx-auto bg-white p-6 sm:p-10 md:p-12 text-slate-900 space-y-6 shadow-md rounded-xl border border-slate-200 relative print:p-0 print:border-none print:shadow-none print:rounded-none" 
+                id="printable-certificate"
+              >
+                {/* Certificate Header */}
+                <div className="text-center space-y-2 border-b-2 border-slate-800 pb-5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img
+                      src={settings.schoolLogoUrl || '/assets/aistudio/PEQUENO_87357065.png'}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/favicon.png';
+                      }}
+                      alt="Complexo Proglory"
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-contain p-0.5 ring-2 ring-amber-400 bg-white"
+                    />
+                    <img
+                      src={settings.logoUrl || '/assets/aistudio/Screenshot_20261107-111452_1a58e2b0.jpg'}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/favicon.png';
+                      }}
+                      alt="AEP-2"
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-contain ring-2 ring-slate-900 bg-black"
+                    />
+                  </div>
+                  <h2 className="text-sm sm:text-base font-black tracking-wider uppercase text-slate-900">
+                    {settings.name} ({settings.acronym})
+                  </h2>
+                  <p className="text-xs text-slate-700 font-bold">
+                    {settings.institution}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    Edifício dos Estudantes · Mandato {settings.academicYear}
+                  </p>
                 </div>
-                <h2 className="text-base font-black tracking-wider uppercase text-slate-900">
-                  {settings.name} ({settings.acronym})
-                </h2>
-                <p className="text-xs text-slate-700 font-bold">
-                  {settings.institution}
-                </p>
-                <p className="text-[10px] text-slate-400">
-                  Edifício dos Estudantes · Mandato {settings.academicYear}
-                </p>
-              </div>
 
-              {/* Certificate Title */}
-              <div className="text-center py-2">
-                <h3 className="text-lg font-serif font-bold uppercase tracking-widest text-slate-900">
-                  DECLARAÇÃO OFICIAL
-                </h3>
-                <p className="text-xs text-slate-500 font-mono mt-1">
-                  REG-CERT-{new Date().getFullYear()}-{certificateMember.studentNumber}
-                </p>
-              </div>
-
-              {/* Formal Text */}
-              <div className="text-xs sm:text-sm text-slate-800 leading-relaxed text-justify space-y-4 font-serif">
-                <p>
-                  Para os devidos efeitos e a pedido do interessado, a Direção da <strong>{settings.name}</strong> declara que:
-                </p>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans space-y-1">
-                  <p><strong>Nome:</strong> {certificateMember.fullName}</p>
-                  <p><strong>Nº de Processo:</strong> {certificateMember.studentNumber}</p>
-                  <p><strong>Classe & Curso:</strong> {certificateMember.classLevel} ({certificateMember.course})</p>
-                  <p><strong>Departamento & Cargo:</strong> {certificateMember.department} · {certificateMember.departmentRole}</p>
+                {/* Certificate Title */}
+                <div className="text-center py-1 sm:py-2">
+                  <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-widest text-slate-900">
+                    DECLARAÇÃO OFICIAL
+                  </h3>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">
+                    REG-CERT-{new Date().getFullYear()}-{certificateMember.studentNumber}
+                  </p>
                 </div>
-                <p>
-                  Encontra-se regularmente inscrito no livro de registo de membros desta Associação de Estudantes desde <strong>{formatDatePt(certificateMember.joinDate)}</strong>, estando no pleno gozo dos seus direitos estatutários e com as <strong>quotas associativas integralmente regularizadas</strong> à data presente.
-                </p>
-                <p>
-                  A presente declaração é válida para todos os efeitos legais e académicos, nomeadamente para efeitos de comprovação de estatuto de estudante dirigente, bolsas ou benefícios académicos.
-                </p>
-              </div>
 
-              {/* Date & Signatures */}
-              <div className="pt-6 grid grid-cols-2 gap-8 items-end">
-                <div className="flex items-center gap-3">
-                  <QRCodeSvg
-                    value={`AEISU:CERTIFICADO:${certificateMember.studentNumber}:${new Date().getFullYear()}`}
-                    size={72}
-                  />
-                  <div className="text-[10px] text-slate-500">
-                    <p className="font-bold text-slate-900">Selo de Autenticidade</p>
-                    <p className="text-[9px] text-slate-400 font-mono">Conferido Digitalmente</p>
+                {/* Formal Text */}
+                <div className="text-xs sm:text-sm text-slate-800 leading-relaxed text-justify space-y-3 sm:space-y-4 font-serif">
+                  <p>
+                    Para os devidos efeitos e a pedido do interessado, a Direção da <strong>{settings.name}</strong> declara que:
+                  </p>
+                  <div className="p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans space-y-1">
+                    <p><strong>Nome:</strong> {certificateMember.fullName}</p>
+                    <p><strong>Nº de Processo:</strong> {certificateMember.studentNumber}</p>
+                    <p><strong>Classe & Curso:</strong> {certificateMember.classLevel} ({certificateMember.course})</p>
+                    <p><strong>Departamento & Cargo:</strong> {certificateMember.department} · {certificateMember.departmentRole}</p>
+                  </div>
+                  <p>
+                    Encontra-se regularmente inscrito no livro de registo de membros desta Associação de Estudantes desde <strong>{formatDatePt(certificateMember.joinDate)}</strong>, estando no pleno gozo dos seus direitos estatutários e com as <strong>quotas associativas integralmente regularizadas</strong> à data presente.
+                  </p>
+                  <p>
+                    A presente declaração é válida para todos os efeitos legais e académicos, nomeadamente para efeitos de comprovação de estatuto de estudante dirigente, bolsas ou benefícios académicos.
+                  </p>
+                </div>
+
+                {/* Date & Signatures */}
+                <div className="pt-6 grid grid-cols-2 gap-4 sm:gap-8 items-end">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <QRCodeSvg
+                      value={`AEISU:CERTIFICADO:${certificateMember.studentNumber}:${new Date().getFullYear()}`}
+                      size={64}
+                    />
+                    <div className="text-[9px] sm:text-[10px] text-slate-500">
+                      <p className="font-bold text-slate-900">Selo de Autenticidade</p>
+                      <p className="text-[8px] sm:text-[9px] text-slate-400 font-mono">Conferido Digitalmente</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center border-t border-slate-400 pt-3">
+                    <p className="font-serif italic text-xs text-slate-800 truncate">
+                      {settings.presidentName}
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-0.5">
+                      Presidente da Direção da AE
+                    </p>
                   </div>
                 </div>
-
-                <div className="text-center border-t border-slate-400 pt-3">
-                  <p className="font-serif italic text-xs text-slate-800">
-                    {settings.presidentName}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-0.5">
-                    Presidente da Direção da AE
-                  </p>
-                </div>
               </div>
+            </div>
+
+            {/* Sticky Mobile Bottom Floating Actions bar */}
+            <div className="no-print sm:hidden p-3 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0 shadow-lg pb-4">
+              <button
+                onClick={() => setCertificateMember(null)}
+                className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span>Fechar Ficha</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex-1 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Imprimir A4</span>
+              </button>
             </div>
           </div>
         </div>

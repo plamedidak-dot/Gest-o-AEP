@@ -17,6 +17,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Connect to the default Firestore database of gestaep-1f3ed
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const isFirebaseAvailable = (): boolean => Boolean(app && db);
 
 export enum OperationType {
   CREATE = 'create',

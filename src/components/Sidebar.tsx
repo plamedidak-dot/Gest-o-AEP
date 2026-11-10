@@ -10,13 +10,16 @@ import {
   Settings,
   CreditCard,
   Shield,
+  ShieldAlert,
   Award,
   X,
-  LogOut
+  LogOut,
+  Terminal
 } from 'lucide-react';
 import { AssociationSettings, UserProfile } from '../types';
 import { 
   isGlobalAdmin, 
+  isSuperAdmin,
   isDepartmentLeader, 
   isDepartmentSecretary, 
   canManageDepartment,
@@ -62,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Navigation segregated by administrative authority, department leadership, secretarial work, or student member
   const getNavItems = (): NavItem[] => {
     if (isAdmin) {
-      return [
+      const items: NavItem[] = [
         { id: 'dashboard', label: 'Painel Geral', icon: LayoutDashboard },
         { id: 'calendar', label: 'Calendário & Eventos', icon: Calendar, badge: 'Interativo' },
         { id: 'members', label: 'Membros & Sócios', icon: Users },
@@ -72,6 +75,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'profile', label: 'Meu Perfil & Quotas', icon: UserCircle },
         { id: 'settings', label: 'Definições da Escola', icon: Settings },
       ];
+
+      if (isSuperAdmin(currentUser)) {
+        items.unshift(
+          {
+            id: 'general_admin',
+            label: 'Painel SuperAdmin',
+            icon: ShieldAlert,
+            badge: 'PERMISSÕES & LOGS',
+            highlight: true
+          },
+          {
+            id: 'dev_console',
+            label: 'Consola do Engenheiro',
+            icon: Terminal,
+            badge: 'TÉCNICO',
+            highlight: true
+          }
+        );
+      }
+
+      return items;
     }
 
     if (isLeader) {

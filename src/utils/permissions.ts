@@ -1,18 +1,31 @@
 import { UserProfile, Member } from '../types';
 
 /**
- * Checks if the user is part of the central administration (President, Vice-President, General Secretary, Treasurer)
+ * Checks if the user is the General System Administrator / Developer / Technical Engineer
+ */
+export const isSuperAdmin = (user?: UserProfile | null): boolean => {
+  if (!user) return false;
+  return user.role === 'superadmin' || 
+         user.isDeveloper === true || 
+         (user.adminRole || '').toLowerCase().includes('engenheiro') || 
+         (user.adminRole || '').toLowerCase().includes('desenvolvedor');
+};
+
+/**
+ * Checks if the user is part of the central administration (President, Vice-President, General Secretary, Treasurer, SuperAdmin)
  */
 export const isGlobalAdmin = (user?: UserProfile | null): boolean => {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (user.role === 'superadmin' || user.role === 'admin') return true;
   const role = (user.adminRole || user.departmentRole || '').toLowerCase();
   const dept = (user.department || '').toLowerCase();
   return dept.includes('administra') || 
          role.includes('presidente') || 
          role.includes('secretário-geral') || 
          role.includes('secretario-geral') || 
-         role.includes('tesour');
+         role.includes('tesour') ||
+         role.includes('engenheiro') ||
+         role.includes('desenvolvedor');
 };
 
 /**
@@ -97,6 +110,13 @@ export const getAccessibleMembers = (user: UserProfile, members: Member[]): Memb
  * Return a human-readable title badge for the user
  */
 export const getUserBadgeInfo = (user: UserProfile): { title: string; badgeClass: string; roleType: string } => {
+  if (isSuperAdmin(user)) {
+    return {
+      title: 'Engenheiro do Sistema (Desenvolvedor)',
+      badgeClass: 'bg-purple-100 text-purple-900 border-purple-300 font-black',
+      roleType: 'superadmin'
+    };
+  }
   if (isGlobalAdmin(user)) {
     return {
       title: user.adminRole || 'Administração Geral',

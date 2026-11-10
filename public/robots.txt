@@ -1,10 +1,7 @@
 # robots.txt para Portal da Associação de Estudantes
+
 User-agent: *
 Allow: /
 
-# Permitir verificação e indexação Google
-User-agent: Googlebot
-Allow: /
+Sitemap: https://gestaep.netlify.app/sitemap.xml
 
-# Sitemap
-Sitemap: /sitemap.xml

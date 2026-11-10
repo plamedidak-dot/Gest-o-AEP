@@ -57,7 +57,8 @@
 
   .a4-document,
   #printable-certificate,
-  #printable-receipt {
+  #printable-receipt,
+  #printable-credentials {
     width: 100% !important;
     max-width: 210mm !important;
     min-height: 297mm !important;
